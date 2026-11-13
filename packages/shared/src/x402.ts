@@ -6,7 +6,8 @@
 // Headers: PAYMENT-REQUIRED (402), PAYMENT-SIGNATURE (retry), PAYMENT-RESPONSE (200).
 import type { Hex } from "./types";
 
-export interface ResourceInfo { url: string; description?: string; mimeType?: string }
+/** Pieverse rejects a payload whose resource lacks description or mimeType (verified live 2026-11-14). */
+export interface ResourceInfo { url: string; description: string; mimeType: string }
 export interface PaymentRequirements {
   scheme: "exact";
   network: string;

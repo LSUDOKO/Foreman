@@ -40,7 +40,7 @@ export function paywall(o: PaywallOptions): MiddlewareHandler {
     if (refused) return refused;
 
     const req = requirementFor(o, c);
-    const required: PaymentRequired = { x402Version: 2, resource: { url: c.req.url, description: o.description }, accepts: [req] };
+    const required: PaymentRequired = { x402Version: 2, resource: { url: c.req.url, description: o.description, mimeType: "application/json" }, accepts: [req] };
     const header = c.req.header(H_SIGNATURE) ?? c.req.header("x-payment");
     if (!header) {
       c.header(H_REQUIRED, b64(required));
