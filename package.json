@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "pay-test": "bun scripts/pay-test.ts",
     "serv-test": "bun scripts/serv-test.ts",
-    "call-test": "bun scripts/call-test.ts"
+    "call-test": "bun scripts/call-test.ts",
+    "reset": "bun scripts/reset.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
