@@ -19,7 +19,7 @@ const { app } = createWorker({
   publicUrl: process.env[`${key}_PUBLIC_URL`] || (key === "QUICKDIAL" ? urls().quickdial : urls().clearcall),
   from: str("TWILIO_FROM", "+15005550006"),
   hmacSecret: str("WORKER_HMAC_SECRET", "dev-hmac-secret"),
-  turnTimeoutMs: num("SERV_TURN_TIMEOUT_MS", 4000),
+  turnTimeoutMs: num("SERV_TURN_TIMEOUT_MS", 9000),
   faultyDelayMs: [delay[0] ?? 20000, delay[1] ?? delay[0] ?? 40000],
 });
 

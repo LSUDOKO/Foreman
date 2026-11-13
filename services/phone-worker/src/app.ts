@@ -154,8 +154,8 @@ export function createWorker(d: WorkerDeps) {
       st.transcript.push({ who: "caller", text: speech });
       if (st.keypad) turn = fallbackTurn(speech);
       else {
-        const dec = await parseTurn(speech, st.req.offers, st.req.timeZone, d.turnTimeoutMs ?? 4000);
-        st.decisions.push({ purpose: dec.purpose, source: dec.source, ms: dec.ms, model: dec.model, intent: dec.data.intent, injection: dec.data.injection, guards: dec.guards });
+        const dec = await parseTurn(speech, st.req.offers, st.req.timeZone, d.turnTimeoutMs ?? 9000);
+        st.decisions.push({ purpose: dec.purpose, source: dec.source, ms: dec.ms, model: dec.model, intent: dec.data.intent, injection: dec.data.injection, requested: dec.data.requested, guards: dec.guards });
         turn = dec.data;
         // SERV too slow or down → keypad from here on, as the call script promises.
         if (dec.source === "fallback" && turn.intent === "unclear") {
