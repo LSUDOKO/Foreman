@@ -63,6 +63,17 @@ The ledger at the end — this is the real output of the e2e run, not a mock-up:
 | **Foreman margin** | **$9.02** |
 | Revenue recovered for the clinic (2 × $60 appointments, assumption) | $120.00 |
 
+## The console
+
+Mission control for an agent that earns money. Every view is a pure function of the hash-chained event log, so the
+public replay renders exactly what the live run did. Simulated settlements carry a **SIM** badge and are never linked.
+
+| Overview | Ledger |
+|---|---|
+| ![Overview](docs/screenshots/overview.png) | ![Ledger](docs/screenshots/ledger.png) |
+| **Safety** | **Workers** |
+| ![Safety](docs/screenshots/safety.png) | ![Workers](docs/screenshots/workers.png) |
+
 ## How SERV Reasoning powers it
 
 SERV makes five decisions. Each one is logged as a `serv_decision` event with model, effort, latency, tokens,
@@ -147,7 +158,7 @@ bun run dev:all      # all services + console on http://localhost:5173
 ```
 
 ```bash
-bun test             # 90 unit/integration tests: firewall, oracle, x402, worker voice loop, invoices, reconciler…
+bun test             # 92 unit/integration tests: firewall, oracle, x402, worker voice loop, invoices, reconciler…
 bun run e2e          # the five-customer demo end to end, with assertions; exports demo/recorded-run.json
 bun run serv-test    # turn-parser accuracy with and without SERV
 bun run pay-test -- --verify   # check our x402 payload against the live Pieverse facilitator
