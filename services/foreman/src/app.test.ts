@@ -20,7 +20,7 @@ const net = kite("testnet");
 const foremanPk = generatePrivateKey();
 const businessPk = generatePrivateKey();
 
-function world() {
+function world(consoleToken?: string) {
   const db = openDb(":memory:");
   const store = new Store(db);
   const log = new EventLog(db);
@@ -31,7 +31,7 @@ function world() {
   const app = createApp({
     db, store, log, runner, network: net, facilitator: new LocalFacilitator(), foremanPk, foremanAddress: privateKeyToAccount(foremanPk).address,
     businessAddress: privateKeyToAccount(businessPk).address, oracleSigner: async () => ADDR.oracle, identities: async () => ({}),
-    facts: () => ({ ...FACTS }), payerUrl: "http://payer", hmacSecret: "s",
+    facts: () => ({ ...FACTS }), payerUrl: "http://payer", hmacSecret: "s", consoleToken,
   });
   const c = contract();
   store.saveContract(c, "running");
@@ -146,4 +146,14 @@ test("expired contract moves to expired and releases its unconfirmed holds", asy
   expect(w.store.outcome("out_1")!.state).toBe("cancelled");
   delete process.env.CALCOM_API_BASE;
   cal.stop();
+});
+
+test("console API needs the bearer token when one is configured; public and worker routes don't", async () => {
+  const w = world("t0ken");
+  expect((await w.app.request("/api/kill", { method: "POST" })).status).toBe(401);
+  expect((await w.app.request("/api/export/x")).status).toBe(401);
+  expect((await w.app.request("/api/kill", { method: "POST", headers: { authorization: "Bearer t0ken" } })).status).toBe(200);
+  expect((await w.app.request("/api/feed?token=wrong")).status).toBe(401);
+  expect((await w.app.request(`/c/${w.token}`)).status).toBe(200);
+  expect((await w.app.request("/api/worker-result", { method: "POST", body: "{}" })).status).toBe(401); // HMAC, not bearer
 });
