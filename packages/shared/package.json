@@ -4,5 +4,5 @@
   "private": true,
   "type": "module",
   "exports": { "./*": "./src/*.ts" },
-  "dependencies": { "viem": "^2.57.0", "zod": "^4.6.0", "openai": "^7.56.0" }
+  "dependencies": { "viem": "^2.57.0", "zod": "^4.6.0", "openai": "^7.56.0", "hono": "^4.13.0" }
 }

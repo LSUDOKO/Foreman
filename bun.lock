@@ -13,6 +13,7 @@
       "name": "@foreman/shared",
       "version": "0.1.0",
       "dependencies": {
+        "hono": "^4.13.0",
         "openai": "^7.56.0",
         "viem": "^2.57.0",
         "zod": "^4.6.0",
