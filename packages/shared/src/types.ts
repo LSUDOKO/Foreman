@@ -16,7 +16,7 @@ export interface CallResult {
   transcript: TranscriptLine[];
   durationSec: number;
   /** SERV decisions made inside the worker during the call, surfaced in Foreman's Decisions page. */
-  decisions?: { purpose: string; source: "live" | "fallback"; ms: number; model: string; intent: string; injection: boolean; requested?: string[]; guards: string[]; error?: string }[];
+  decisions?: { purpose: string; source: "live" | "fallback"; ms: number; model: string; intent: string; injection: boolean; requested?: string[]; guards: string[]; error?: string; blocked?: boolean }[];
 }
 
 export interface CallRequest {

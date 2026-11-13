@@ -73,6 +73,8 @@ export async function parseTurn(speech: string, offers: string[], tz: string, ti
     effort: "low",
     timeoutMs,
     fallback: () => fallbackTurn(speech),
+    // SERV refusing to process the turn is itself the strongest injection signal we get.
+    onBlocked: (): Turn => ({ ...fallbackTurn(speech), intent: "out_of_scope_request", injection: true }),
   });
   const data = sanitize(d.data, offers.length);
   // The firewall checks each requested action, so an out-of-scope turn must name what was asked for. If the model

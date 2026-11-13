@@ -71,7 +71,7 @@ export class Runner {
   serv(contractId: string, d: ServDecision<unknown>, actor = "serv", extra: Record<string, unknown> = {}) {
     this.d.log.emit("serv_decision", actor, {
       purpose: d.purpose, model: d.model, effort: d.effort, source: d.source, ms: d.ms, tokens: d.usage, guards: d.guards,
-      decision: d.data, error: d.error, ...extra,
+      decision: d.data, error: d.error, blocked: d.blocked, ...extra,
     }, contractId);
   }
 
@@ -244,7 +244,7 @@ export class Runner {
       requested: r.requested, injection: !!r.injection, claim: true,
     }, contractId);
     for (const dec of r.decisions ?? [])
-      log.emit("serv_decision", w.name, { purpose: dec.purpose, model: dec.model, source: dec.source, ms: dec.ms, guards: dec.guards, decision: { intent: dec.intent, injection: dec.injection, requested: dec.requested }, error: dec.error, attemptId, customerId: c.id }, contractId);
+      log.emit("serv_decision", w.name, { purpose: dec.purpose, model: dec.model, source: dec.source, ms: dec.ms, guards: dec.guards, decision: { intent: dec.intent, injection: dec.injection, requested: dec.requested }, error: dec.error, blocked: dec.blocked, attemptId, customerId: c.id }, contractId);
 
     // Whatever the caller asked for outside the contract is checked action by action and refused.
     const excerpt = r.transcript.find((t) => t.who === "caller" && t.text && !t.text.startsWith("["))?.text;
