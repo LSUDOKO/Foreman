@@ -49,8 +49,8 @@ export async function compileContract(goal: string, facts: ServerFacts) {
     schema: ContractDraft,
     normalize: normalizeDraft,
     tools: [shadowAgent(HINT, 3)],
-    effort: "medium",
-    timeoutMs: 60_000,
+    effort: "low", // shadow-agent validation does the heavy lifting; medium measured >100 s end to end
+    timeoutMs: 90_000,
     fallback: () => fallbackDraft(goal),
   });
   const { contract, rejectedRequests } = assemble(decision.data, facts);
