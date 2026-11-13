@@ -16,99 +16,46 @@
 ## Generate wallets
 
 ```bash
-bun -e 'import {generatePrivateKey, privateKeyToAccount} from "viem/accounts";
-for (const n of ["BUSINESS","FOREMAN","ORACLE_SIGNER","CLEARCALL","QUICKDIAL","ORACLE"]) {
-  const pk = generatePrivateKey(); console.log(n+"_PK="+pk, " # "+privateKeyToAccount(pk).address) }'
+bun run setup
 ```
-Only BUSINESS and FOREMAN need funds. For CLEARCALL, QUICKDIAL and ORACLE you only need the addresses (`*_PAYTO`).
+Writes BUSINESS / FOREMAN / ORACLE_SIGNER keys and addresses, receive-only CLEARCALL / QUICKDIAL / ORACLE addresses
+(their keys go to `.data/receive-keys.json`, gitignored), an HMAC secret and the defaults below into `.env`. Existing
+values are never overwritten. Only BUSINESS and FOREMAN need funds.
 
 ## `.env.example`
 
-```bash
-# ---------- SERV ----------
-SERV_API_KEY=
-SERV_MODEL=gpt-5.4-mini
-SERV_BASE_URL=https://inference-api.openserv.ai/v1
-
-# ---------- Kite ----------
-KITE_NETWORK=testnet
-KITE_RPC=https://rpc-testnet.gokite.ai/
-KITE_EXPLORER=https://testnet.kitescan.ai
-FACILITATOR_URL=https://facilitator.pieverse.io/v2
-PAY_TOKEN=0x38129cf4CE5E183eFF248F42A7D345Bb1B47621A   # pieUSD (verify on Kitescan)
-
-BUSINESS_PK=
-FOREMAN_PK=
-ORACLE_SIGNER_PK=
-FOREMAN_PAYTO=          # address of FOREMAN_PK
-CLEARCALL_PAYTO=
-QUICKDIAL_PAYTO=
-ORACLE_PAYTO=
-
-# ---------- Prices (USD in pieUSD) ----------
-CLEARCALL_PRICE=0.50
-QUICKDIAL_PRICE=0.30
-BONUS_PRICE=0.20
-ORACLE_PRICE=0.02
-INVOICE_CONFIRMED=4.00
-INVOICE_ATTENDED=2.00
-BUSINESS_MAX_PER_OUTCOME=6.00
-
-# ---------- Twilio ----------
-TWILIO_ACCOUNT_SID=
-TWILIO_AUTH_TOKEN=
-TWILIO_FROM=
-TWILIO_API_KEY_SID=     # oracle reads call records with this
-TWILIO_API_KEY_SECRET=
-CLEARCALL_PUBLIC_URL=   # https://xxxx.trycloudflare.com → :4110
-QUICKDIAL_PUBLIC_URL=   # → :4111
-WORKER_HMAC_SECRET=
-
-# ---------- Cal.com ----------
-CALCOM_API_KEY=
-CALCOM_EVENT_TYPE_ID=
-CALCOM_READ_KEY=        # business read key for the oracle (can be the same key for the hackathon)
-
-# ---------- Email ----------
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_USER=
-SMTP_PASS=
-FOREMAN_PUBLIC_URL=     # https://yyyy.trycloudflare.com → :4000 (for /c/:token links)
-
-# ---------- App ----------
-BUSINESS_NAME=Smile Dental
-BUSINESS_TZ=Asia/Kolkata
-CONSOLE_TOKEN=
-DB_PATH=.data/foreman.sqlite
-```
+See [`.env.example`](.env.example). Every external adapter has a sandbox twin: leave a section blank and that piece runs
+locally (labelled SIM / sandbox in the console). `PAYMENTS_MODE=sim|live` switches x402 settlement between the local
+signature-checking facilitator and the Pieverse facilitator on Kite.
 
 ## Run
 
 ```bash
 bun install
-cp .env.example .env            # fill it in
-cloudflared tunnel --url http://localhost:4110   # ClearCall  → paste URL into CLEARCALL_PUBLIC_URL
-cloudflared tunnel --url http://localhost:4111   # QuickDial  → QUICKDIAL_PUBLIC_URL
-cloudflared tunnel --url http://localhost:4000   # Foreman    → FOREMAN_PUBLIC_URL
-bun run dev:all                 # foreman 4000 (+ invoice paywalls 4001/4002), workers 4110/4111 behind paywalls 4100–4103,
-                                # oracle 4210 behind paywall 4200, payer 4300, console 5173 (port map: docs/07)
+bun run setup                   # once
+cloudflared tunnel --url http://localhost:4110   # live calls only: ClearCall  → CLEARCALL_PUBLIC_URL
+cloudflared tunnel --url http://localhost:4111   # QuickDial → QUICKDIAL_PUBLIC_URL
+cloudflared tunnel --url http://localhost:4000   # Foreman   → FOREMAN_PUBLIC_URL (confirmation links)
+bun run dev:all                 # foreman 4000, ClearCall 4110, QuickDial 4111, oracle 4210, payer 4300, sandbox 4400, console 5173
 open http://localhost:5173
 ```
+x402 paywalls are in-process on each seller with per-route prices (docs/07 option B), so there are no wrapper ports.
 
 ## Smoke tests (in order)
 
 ```bash
-bun scripts/pay-test.ts         # $0.01 x402 payment → Kitescan link
-bun scripts/serv-test.ts        # SERV classifies an attack as out_of_scope_request
-bun scripts/call-test.ts +91XXXXXXXXXX   # your phone rings (keypad path)
-bun test                        # firewall, oracle, idempotency
+bun run pay-test -- --verify    # live Pieverse facilitator checks our signed payload (works unfunded)
+bun run pay-test                # $0.01 x402 payment → Kitescan link (needs funded FOREMAN wallet)
+bun run serv-test               # 20 turn-parser fixtures incl. attacks, with and without SERV
+bun run call-test +91XXXXXXXXXX # your phone rings (keypad path) — sandbox persona without Twilio keys
+bun test                        # firewall, oracle, x402, worker loop, invoices, idempotency, reconciler
+bun run e2e                     # five-customer demo end to end with assertions
 ```
 
 ## Replay build
 
 ```bash
-curl -H "Authorization: Bearer $CONSOLE_TOKEN" localhost:4000/api/export/ctr_demo_001 > demo/recorded-run.json
+bun run e2e                     # or, after a live run: curl localhost:4000/api/export/<contractId> > demo/recorded-run.json
 cp demo/recorded-run.json apps/console/public/recorded-run.json
 cd apps/console && VITE_REPLAY_ONLY=1 bun run build    # deploy dist/ to Vercel
 ```
