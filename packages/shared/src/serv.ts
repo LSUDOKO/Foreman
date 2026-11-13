@@ -32,6 +32,8 @@ export interface ServDecision<T> {
   guards: string[];
   data: T;
   error?: string;
+  /** SERV's guard/content filter stopped the request (finish_reason=content_filter). */
+  blocked?: boolean;
 }
 
 export interface ServJsonOpts<T> {
@@ -46,6 +48,8 @@ export interface ServJsonOpts<T> {
   normalize?: (raw: any) => unknown;
   /** Deterministic answer used when SERV is unavailable; the decision is then labelled source:"fallback". */
   fallback?: () => T;
+  /** Answer to use when SERV's guard blocks the request; the decision stays source:"live" with blocked:true. */
+  onBlocked?: () => T;
 }
 
 type Listener = (d: ServDecision<unknown>) => void;
@@ -102,7 +106,14 @@ export async function servJson<T>(o: ServJsonOpts<T>): Promise<ServDecision<T>> 
         } as any,
         { timeout: Math.round(remaining) },
       );
-      const raw = extractJson(res.choices[0]?.message?.content ?? "");
+      const text = res.choices[0]?.message?.content ?? "";
+      if (res.choices[0]?.finish_reason === "content_filter" && o.onBlocked)
+        return emit({
+          purpose: o.purpose, model: res.model ?? model, effort, source: "live", guards, data: o.onBlocked(), blocked: true,
+          ms: Math.round(performance.now() - t0), usage: res.usage ? { input: res.usage.prompt_tokens, output: res.usage.completion_tokens } : null,
+        });
+      let raw: unknown;
+      try { raw = extractJson(text); } catch { throw new Error(`no JSON object in model output: ${JSON.stringify(text.slice(0, 200))} finish=${res.choices[0]?.finish_reason}`); }
       const data = o.schema.parse(o.normalize ? o.normalize(raw) : raw);
       const u = res.usage;
       return emit({
