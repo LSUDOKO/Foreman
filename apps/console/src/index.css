@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0b0d12;
+  --color-surface: #12151c;
+  --color-raised: #171b24;
+  --color-line: #222733;
+  --color-ink: #e6e8ee;
+  --color-muted: #8a93a6;
+  --color-faint: #5d6576;
+  --color-accent: #7c5cff;
+  --color-in: #22c55e;
+  --color-out: #f59e0b;
+  --color-refuse: #ef4444;
+  --color-proof: #38bdf8;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+::selection { background: color-mix(in srgb, var(--color-accent) 40%, transparent); }
+* { scrollbar-width: thin; scrollbar-color: var(--color-line) transparent; }
+
+@keyframes flash-in { from { background: color-mix(in srgb, var(--color-in) 18%, transparent); } to { background: transparent; } }
+@keyframes flash-out { from { background: color-mix(in srgb, var(--color-out) 16%, transparent); } to { background: transparent; } }
+@keyframes shake { 0%,100% { transform: translateX(0) } 25% { transform: translateX(-2px) } 75% { transform: translateX(2px) } }
+@keyframes shimmer { from { background-position: -200px 0 } to { background-position: 200px 0 } }
+.flash-in { animation: flash-in 1.2s ease-out; }
+.flash-out { animation: flash-out 1.2s ease-out; }
+.shake-once { animation: shake .25s ease-in-out 2; }
+.skeleton { background: linear-gradient(90deg, var(--color-surface), var(--color-raised), var(--color-surface)); background-size: 400px 100%; animation: shimmer 1.4s linear infinite; border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
