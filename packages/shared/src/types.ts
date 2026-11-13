@@ -56,7 +56,7 @@ export const EVENT_TYPES = [
   "contract_compiled", "contract_approved", "contract_started", "contract_completed", "customer_skipped",
   "serv_decision", "worker_hired", "payment_out", "payment_in", "call_started", "call_reported",
   "oracle_verdict", "reputation_changed", "booking_created", "booking_cancelled", "confirmation_sent",
-  "customer_confirmed", "customer_declined", "attended_attested", "refusal", "kill_switch", "transcript_audited",
+  "customer_confirmed", "customer_declined", "attended_attested", "refusal", "kill_switch", "transcript_audited", "customer_state",
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
