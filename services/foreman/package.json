@@ -3,6 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "start": "bun src/index.ts" },
-  "dependencies": { "@foreman/shared": "workspace:*", "hono": "^4.13.0", "viem": "^2.57.0", "zod": "^4.6.0" }
+  "scripts": {
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "@foreman/shared": "workspace:*",
+    "hono": "^4.13.0",
+    "viem": "^2.57.0",
+    "zod": "^4.6.0",
+    "nodemailer": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^8.0.2"
+  }
 }
