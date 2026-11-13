@@ -32,6 +32,7 @@ interface Entry { at: string; outcomeId: string; milestone: string; customer: st
 export function createPayer(d: PayerDeps) {
   const f = d.fetchImpl ?? fetch;
   const paid = new Map<string, string>(); // `${outcomeId}:${milestone}` → tx
+  const failed = new Set<string>(); // oracle said FAIL once: never re-buy that verification (it would drain fees every tick)
   const perOutcome = new Map<string, string>();
   const journal: Entry[] = [];
   let busy = false;
@@ -53,7 +54,7 @@ export function createPayer(d: PayerDeps) {
 
   async function settle(claim: Claim) {
     const key = `${claim.outcomeId}:${claim.milestone}`;
-    if (paid.has(key)) return;
+    if (paid.has(key) || failed.has(key)) return;
     const already = perOutcome.get(claim.outcomeId) ?? "0.00";
     if (cents(addUsd(already, claim.price)) > cents(d.maxPerOutcome))
       return note({ kind: "refusal", outcomeId: claim.outcomeId, milestone: claim.milestone, customer: claim.customer, code: "over_budget" });
@@ -67,8 +68,10 @@ export function createPayer(d: PayerDeps) {
     note({ kind: "verify", outcomeId: claim.outcomeId, milestone: claim.milestone, customer: claim.customer, amount: v.amount, txHash: v.receipt?.transaction, link: txLink(v.receipt?.transaction, d.network), verdict: verdict.verdict, code: verdict.code });
     const { signature, ...body } = verdict;
     const signed = body.oracle?.toLowerCase() === d.oracleSigner.toLowerCase() && (await verifyJson(body, signature, d.oracleSigner));
-    if (verdict.verdict !== "PASS" || !signed)
+    if (verdict.verdict !== "PASS" || !signed) {
+      failed.add(key);
       return note({ kind: "refusal", outcomeId: claim.outcomeId, milestone: claim.milestone, customer: claim.customer, code: signed ? `proof_failed:${verdict.code}` : "proof_failed:bad_signature" });
+    }
 
     const inv = await pay(`${d.foremanUrl}/v1/invoice/${encodeURIComponent(claim.outcomeId)}/${claim.milestone}`, {}, {
       payTo: d.foremanPayTo, max: claim.price,
