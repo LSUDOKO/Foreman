@@ -29,7 +29,8 @@ mkdirSync(".data", { recursive: true });
 writeFileSync(".data/receive-keys.json", JSON.stringify(receive, null, 2));
 set("FOREMAN_PAYTO", env.get("FOREMAN_ADDRESS")!);
 set("WORKER_HMAC_SECRET", Buffer.from(crypto.getRandomValues(new Uint8Array(24))).toString("hex"));
-set("CONSOLE_TOKEN", "");
+// The console API (kill switch, attendance, exports) is reachable through the :4000 tunnel, so it always has a token.
+set("CONSOLE_TOKEN", Buffer.from(crypto.getRandomValues(new Uint8Array(24))).toString("base64url"));
 
 const defaults: Record<string, string> = {
   SERV_MODEL: "gpt-5.4-mini",
@@ -42,8 +43,10 @@ const defaults: Record<string, string> = {
 };
 for (const [k, v] of Object.entries(defaults)) set(k, v);
 
-const keep = text.trim() ? `${text.trimEnd()}\n` : "";
-const extra = added.filter((k) => !new RegExp(`^${k}=`, "m").test(text)).map((k) => `${k}=${env.get(k)}`).join("\n");
+// Fill keys that exist but are blank in place; append the rest.
+let keep = text.trim() ? `${text.trimEnd()}\n` : "";
+for (const k of added) keep = keep.replace(new RegExp(`^${k}=[ \\t]*$`, "m"), `${k}=${env.get(k)}`);
+const extra = added.filter((k) => !new RegExp(`^${k}=`, "m").test(keep)).map((k) => `${k}=${env.get(k)}`).join("\n");
 writeFileSync(path, keep + (extra ? `\n# ---- added by bun run setup (${new Date().toISOString()}) ----\n${extra}\n` : ""));
 
 console.log(added.length ? `\nAdded to .env: ${added.join(", ")}` : "\n.env already complete.");
