@@ -22,8 +22,10 @@ export class Idempotency {
     const s = this.status(key);
     return s === "pending" || s === "done";
   };
-  begin(key: string, kind: string): boolean {
-    const r = this.db.query("INSERT INTO idempotency (key, kind, status, created_at) VALUES (?, ?, 'pending', ?) ON CONFLICT(key) DO UPDATE SET status = 'pending' WHERE status = 'failed'").run(key, kind, nowIso());
+  /** `context` is kept in `ref` while pending so the reconciler knows where to look after a crash. */
+  begin(key: string, kind: string, context?: Record<string, string>): boolean {
+    const ctx = context ? JSON.stringify(context) : null;
+    const r = this.db.query("INSERT INTO idempotency (key, kind, status, ref, created_at) VALUES (?, ?, 'pending', ?, ?) ON CONFLICT(key) DO UPDATE SET status = 'pending', ref = excluded.ref WHERE status = 'failed'").run(key, kind, ctx, nowIso());
     return r.changes > 0;
   }
   done(key: string, ref: string) { this.db.query("UPDATE idempotency SET status = 'done', ref = ? WHERE key = ?").run(ref, key); }
@@ -31,5 +33,9 @@ export class Idempotency {
   ref(key: string): string | null { return (this.db.query("SELECT ref FROM idempotency WHERE key = ?").get(key) as { ref: string } | null)?.ref ?? null; }
   pending(kind: string): string[] {
     return (this.db.query("SELECT key FROM idempotency WHERE status = 'pending' AND kind = ?").all(kind) as { key: string }[]).map((r) => r.key);
+  }
+  pendingWithContext(kind: string): { key: string; context: Record<string, string> }[] {
+    return (this.db.query("SELECT key, ref FROM idempotency WHERE status = 'pending' AND kind = ?").all(kind) as { key: string; ref: string | null }[])
+      .map((r) => ({ key: r.key, context: r.ref ? JSON.parse(r.ref) : {} }));
   }
 }

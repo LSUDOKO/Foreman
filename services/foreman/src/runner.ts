@@ -332,8 +332,8 @@ export class Runner {
     const slot = slotIndex !== undefined ? offers[slotIndex] : undefined;
     const bookingKey = keys.booking(contractId, c.id);
     if (!slot || !this.guard(contractId, { kind: "create_booking", idemKey: bookingKey, callVerified: true, slot, offered: offers }, { customerId: c.id })) return;
-    idem.begin(bookingKey, "booking");
     const outcomeId = newId("out");
+    idem.begin(bookingKey, "booking", { contractId, customerId: c.id, email: c.email, outcomeId, attemptId, slot });
     let uid: string;
     try {
       const b = await createBooking(calClient(), {
