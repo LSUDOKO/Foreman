@@ -5,8 +5,8 @@ import { assemble, ContractDraft, DEFAULTS } from "./assemble";
 import type { ServerFacts } from "./assemble";
 
 const SYSTEM = `You compile a small business's goal into a strict JSON outcome-contract draft for an AI agent that rebooks no-show customers.
-Never output wallet addresses; refer to payees by name only, chosen from the worker registry you are given.
-Allowed actions are exactly: ${PERMITTED_ACTIONS.join(", ")}.
+Never output wallet addresses. payees is an array of plain name strings copied from "workerRegistry" (e.g. ["ClearCall","Oracle"]).
+permittedActions is an array of strings copied EXACTLY from this list (no paraphrases, no new names): ${JSON.stringify(PERMITTED_ACTIONS)}.
 If the goal asks for anything outside those actions (refunds, cancelling existing bookings, price changes, sharing data, ...),
 leave it out of permittedActions and list it in "rejectedRequests" with a short reason.
 Money values are decimal strings like "5.00" and must come from the goal or the stated defaults.
@@ -68,7 +68,8 @@ function normalizeDraft(raw: any): unknown {
     perCallCap: str(r.perCallCap ?? r.spend?.perCallCap),
     humanApprovalAbove: str(r.humanApprovalAbove),
     allowedHours: r.allowedHours ?? r.callPolicy?.allowedHours,
-    payees: (r.payees ?? r.payeeAllowlist ?? []).map(String),
+    payees: (r.payees ?? r.payeeAllowlist ?? []).map((x: any) => (x && typeof x === "object" ? String(x.name ?? x.worker ?? x.payee ?? "") : String(x))).filter(Boolean),
+    permittedActions: (r.permittedActions ?? []).map((x: any) => (x && typeof x === "object" ? String(x.action ?? x.name ?? "") : String(x))).filter(Boolean),
     rejectedRequests: (r.rejectedRequests ?? []).map((x: any) => (typeof x === "string" ? { request: x, reason: "not permitted" } : { request: String(x.request ?? x.action ?? x.name), reason: String(x.reason ?? "not permitted") })),
   };
 }

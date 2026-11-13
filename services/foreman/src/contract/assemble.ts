@@ -56,13 +56,18 @@ const clamp = (v: number | undefined, lo: number, hi: number, d: number) => (v =
 
 export function assemble(draft: ContractDraft, f: ServerFacts) {
   const rejected = [...draft.rejectedRequests];
+  const forbidden = /refund|cancel_(all|existing)|price|discount|share|delete|transfer/i;
   const permitted = draft.permittedActions.filter((a): a is (typeof PERMITTED_ACTIONS)[number] => {
     if ((PERMITTED_ACTIONS as readonly string[]).includes(a)) return true;
-    rejected.push({ request: a, reason: "action_not_supported" });
+    // Something risky the model tried to permit is a rejected request; an invented paraphrase of the job is just dropped.
+    if (forbidden.test(a)) rejected.push({ request: a, reason: "action_not_supported" });
     return false;
   });
-  // place_call/offer_slot/create_booking/email are the job itself; a goal can narrow but never widen them.
-  const permittedActions = permitted.length ? [...new Set(permitted)] : [...PERMITTED_ACTIONS];
+  void permitted;
+  // A confirmed_rebooking is only provable with all five: the proof spec needs the customer's confirmation click
+  // (send_confirmation_email) and the lifecycle needs hold cleanup (cancel_own_unconfirmed_booking). So the server
+  // grants exactly these five; the model can never widen them, only report what it refused.
+  const permittedActions = [...PERMITTED_ACTIONS];
 
   const reg = Object.fromEntries(Object.entries(f.registry).map(([k, v]) => [k.toLowerCase(), v]));
   const named = draft.payees.map((p) => p.toLowerCase()).filter((p) => reg[p]); // anything else (incl. raw addresses) is dropped

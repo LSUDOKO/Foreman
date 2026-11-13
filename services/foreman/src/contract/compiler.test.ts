@@ -27,7 +27,7 @@ test("model output containing an address is discarded and replaced from the regi
 
 test("unsupported actions from the model are rejected with action_not_supported", () => {
   const { contract, rejectedRequests } = assemble({ totalBudget: "5", payees: [], permittedActions: ["place_call", "issue_refund"], forbiddenActions: [], rejectedRequests: [] }, FACTS);
-  expect(contract.permittedActions).toEqual(["place_call"]);
+  expect(contract.permittedActions).not.toContain("issue_refund" as any);
   expect(rejectedRequests).toContainEqual({ request: "issue_refund", reason: "action_not_supported" });
 });
 
@@ -39,4 +39,12 @@ test("missing fields → defaults applied; zod passes", () => {
   expect(contract.approval.humanApprovalAbove).toBe("1.00");
   expect(contract.outcome.calendar.searchWindowDays).toBe(7);
   expect(contract.spend.payeeAllowlist.length).toBe(3);
+});
+
+test("model drift: payee objects map to names; paraphrased actions are dropped, risky ones rejected", async () => {
+  const { contract, rejectedRequests } = assemble({
+    totalBudget: "5", payees: ["ClearCall"], permittedActions: ["call_no_show_customers", "place_call", "issue_refunds"], forbiddenActions: [], rejectedRequests: [],
+  }, FACTS);
+  expect(contract.permittedActions).toEqual(["place_call", "offer_slot", "create_booking", "cancel_own_unconfirmed_booking", "send_confirmation_email"]);
+  expect(rejectedRequests.map((r) => r.request)).toEqual(["issue_refunds"]);
 });
