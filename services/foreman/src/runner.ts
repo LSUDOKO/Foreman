@@ -407,6 +407,15 @@ export class Runner {
   async sweepExpired() {
     for (const o of this.d.store.outcomesInState("confirmation_sent"))
       if (o.confirmExpiresAt && new Date(o.confirmExpiresAt) < this.now()) await this.releaseHold(o.id, "not confirmed within 2 hours");
+    // Lifecycle: a contract past spend.expiresAt stops spending; its outstanding unconfirmed holds are released.
+    const rows = this.d.db.query("SELECT id FROM contracts WHERE status IN ('approved','running','paused')").all() as { id: string }[];
+    for (const { id } of rows) {
+      const k = this.d.store.contract(id)!;
+      if (new Date(k.contract.spend.expiresAt) >= this.now()) continue;
+      this.d.store.setStatus(id, "expired");
+      this.d.log.emit("contract_completed", "foreman", { expired: true, expiresAt: k.contract.spend.expiresAt, spent: this.d.store.spent(id), earned: this.d.store.earned(id) }, id);
+      for (const o of this.d.store.outcomes(id)) if (o.state === "booked" || o.state === "confirmation_sent") await this.releaseHold(o.id, "contract expired");
+    }
   }
 
   /** Kill switch: end calls that are still ringing or talking. */

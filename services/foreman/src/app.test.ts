@@ -133,3 +133,17 @@ test("customer decline releases Foreman's own hold", async () => {
   delete process.env.CALCOM_API_BASE;
   cal.stop();
 });
+
+test("expired contract moves to expired and releases its unconfirmed holds", async () => {
+  const w = world();
+  const cal = Bun.serve({ port: 0, fetch: () => Response.json({ status: "success" }) });
+  process.env.CALCOM_API_BASE = `http://localhost:${cal.port}`;
+  const k = w.store.contract(w.contractId)!;
+  k.contract.spend.expiresAt = new Date(Date.now() - 60_000).toISOString();
+  w.store.saveContract(k.contract, "running");
+  await w.runner.sweepExpired();
+  expect(w.store.contract(w.contractId)!.status).toBe("expired");
+  expect(w.store.outcome("out_1")!.state).toBe("cancelled");
+  delete process.env.CALCOM_API_BASE;
+  cal.stop();
+});
