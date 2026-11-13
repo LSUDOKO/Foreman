@@ -244,7 +244,7 @@ export class Runner {
       requested: r.requested, injection: !!r.injection, claim: true,
     }, contractId);
     for (const dec of r.decisions ?? [])
-      log.emit("serv_decision", w.name, { purpose: dec.purpose, model: dec.model, source: dec.source, ms: dec.ms, guards: dec.guards, decision: { intent: dec.intent, injection: dec.injection, requested: dec.requested }, attemptId, customerId: c.id }, contractId);
+      log.emit("serv_decision", w.name, { purpose: dec.purpose, model: dec.model, source: dec.source, ms: dec.ms, guards: dec.guards, decision: { intent: dec.intent, injection: dec.injection, requested: dec.requested }, error: dec.error, attemptId, customerId: c.id }, contractId);
 
     // Whatever the caller asked for outside the contract is checked action by action and refused.
     const excerpt = r.transcript.find((t) => t.who === "caller" && t.text && !t.text.startsWith("["))?.text;
