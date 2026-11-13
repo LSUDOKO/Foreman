@@ -26,6 +26,7 @@
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
         "viem": "^2.57.0",
+        "zod": "^4.6.0",
       },
     },
     "services/foreman": {
@@ -35,6 +36,7 @@
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
         "viem": "^2.57.0",
+        "zod": "^4.6.0",
       },
     },
     "services/phone-worker": {
@@ -44,6 +46,7 @@
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
         "viem": "^2.57.0",
+        "zod": "^4.6.0",
       },
     },
     "services/proof-oracle": {
@@ -53,6 +56,7 @@
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
         "viem": "^2.57.0",
+        "zod": "^4.6.0",
       },
     },
     "services/sandbox": {
@@ -62,6 +66,7 @@
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
         "viem": "^2.57.0",
+        "zod": "^4.6.0",
       },
     },
   },
