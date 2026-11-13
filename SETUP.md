@@ -32,7 +32,8 @@ signature-checking facilitator and the Pieverse facilitator on Kite.
 
 ```bash
 bun install
-bun run setup                   # once
+bun run setup                   # once (wallets, HMAC secret, console token)
+bun run reset                   # before each rehearsal / the recorded run: fresh reputations, probation, kill switch
 cloudflared tunnel --url http://localhost:4110   # live calls only: ClearCall  → CLEARCALL_PUBLIC_URL
 cloudflared tunnel --url http://localhost:4111   # QuickDial → QUICKDIAL_PUBLIC_URL
 cloudflared tunnel --url http://localhost:4000   # Foreman   → FOREMAN_PUBLIC_URL (confirmation links)
