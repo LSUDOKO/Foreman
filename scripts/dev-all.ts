@@ -42,7 +42,10 @@ export async function waitHealthy(ports: number[], timeoutMs = 20_000) {
 if (import.meta.main) {
   const procs = startAll(SERVICES());
   if (!process.argv.includes("--no-console"))
-    procs.push(...startAll([{ name: "console", cwd: "apps/console", cmd: ["bun", "run", "dev"], color: 37 }]));
+    // Vite only reads apps/console/.env*, so hand it the API URL and console token explicitly.
+    procs.push(...startAll([{ name: "console", cwd: "apps/console", cmd: ["bun", "run", "dev"], color: 37, env: {
+      VITE_API_URL: process.env.VITE_API_URL ?? "http://localhost:4000", VITE_CONSOLE_TOKEN: process.env.CONSOLE_TOKEN ?? "",
+    } }]));
   const stop = () => { for (const p of procs) p.kill(); process.exit(0); };
   process.on("SIGINT", stop);
   process.on("SIGTERM", stop);

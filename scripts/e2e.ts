@@ -24,7 +24,9 @@ const stop = () => { if (!process.argv.includes("--keep")) for (const p of procs
 process.on("SIGINT", () => { stop(); process.exit(1); });
 
 const j = async (method: string, path: string, body?: unknown) => {
-  const r = await fetch(`${API}${path}`, { method, headers: { "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  const headers: Record<string, string> = { "content-type": "application/json" };
+  if (process.env.CONSOLE_TOKEN) headers.authorization = `Bearer ${process.env.CONSOLE_TOKEN}`;
+  const r = await fetch(`${API}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
   const t = await r.text();
   if (!r.ok) throw new Error(`${method} ${path} → ${r.status} ${t}`);
   return JSON.parse(t);

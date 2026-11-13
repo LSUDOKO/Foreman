@@ -10,8 +10,9 @@ const net = kite();
 const chain = defineChain({ id: net.chainId, name: `Kite ${net.name}`, nativeCurrency: { name: "KITE", symbol: "KITE", decimals: 18 }, rpcUrls: { default: { http: [net.rpc] } } });
 const account = privateKeyToAccount(pk("FOREMAN_PK"));
 
-const id = process.argv[2] ?? (await (await fetch(`${urls().foreman}/api/contracts/latest`)).json() as any).contract?.id;
-const audit = (await (await fetch(`${urls().foreman}/api/audit/verify/${id}`)).json()) as { ok: boolean; events: number; head: string };
+const auth = { headers: { authorization: `Bearer ${process.env.CONSOLE_TOKEN ?? ""}` } };
+const id = process.argv[2] ?? (await (await fetch(`${urls().foreman}/api/contracts/latest`, auth)).json() as any).contract?.id;
+const audit = (await (await fetch(`${urls().foreman}/api/audit/verify/${id}`, auth)).json()) as { ok: boolean; events: number; head: string };
 if (!audit.ok) { console.error("audit chain does not verify — refusing to anchor", audit); process.exit(1); }
 
 const pub = createPublicClient({ chain, transport: http() });
