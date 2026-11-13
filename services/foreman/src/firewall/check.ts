@@ -50,8 +50,11 @@ export function withinHours(c: OutcomeContract, now: Date): boolean {
 export function check(a: Action, ctx: Ctx): Decision {
   const c = ctx.contract;
   if (ctx.killSwitch) return refuse("kill_switch_engaged", "operator kill switch");
-  if (ctx.status !== "running") return refuse("contract_not_running", "lifecycle: only running contracts act", { status: ctx.status });
-  if (ctx.now > new Date(c.spend.expiresAt)) return refuse("contract_expired", "spend.expiresAt", { expiresAt: c.spend.expiresAt });
+  // Releasing Foreman's own unconfirmed holds is cleanup, allowed after the job stops or expires
+  // (docs/03 lifecycle) so the business's calendar is never left with ghost holds.
+  const cleanup = a.kind === "cancel_booking" && (a as { ownUnconfirmedHold?: boolean }).ownUnconfirmedHold === true;
+  if (!cleanup && ctx.status !== "running") return refuse("contract_not_running", "lifecycle: only running contracts act", { status: ctx.status });
+  if (!cleanup && ctx.now > new Date(c.spend.expiresAt)) return refuse("contract_expired", "spend.expiresAt", { expiresAt: c.spend.expiresAt });
 
   const need = NEEDS[a.kind];
   if (!need || (need !== "spend" && need !== "internal" && !c.permittedActions.includes(need)))

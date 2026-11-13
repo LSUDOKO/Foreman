@@ -63,6 +63,12 @@ describe("firewall", () => {
     expect(code(call(), { status: "approved" })).toBe("contract_not_running");
     expect(code(call(), { now: new Date("2026-11-17T00:00:00Z") })).toBe("contract_expired");
   });
+  test("cancelling own unconfirmed holds is allowed after the job stops, but not under the kill switch", () => {
+    const own: Action = { kind: "cancel_booking", idemKey: "x", bookingUid: "bk", ownUnconfirmedHold: true };
+    expect(code(own, { status: "completed" })).toBe("ALLOW");
+    expect(code(own, { now: new Date("2026-11-17T00:00:00Z") })).toBe("ALLOW");
+    expect(code(own, { killSwitch: true })).toBe("kill_switch_engaged");
+  });
   test("kill_switch_engaged overrides everything", () => {
     expect(code(pay(), { killSwitch: true })).toBe("kill_switch_engaged");
     expect(code({ kind: "issue_refund" }, { killSwitch: true, status: "draft" })).toBe("kill_switch_engaged");
