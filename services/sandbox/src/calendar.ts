@@ -43,6 +43,12 @@ export function createCalendar(o: { onChange?: () => void } = {}) {
     return c.json({ status: "success", data: b }, 201);
   });
 
+  app.get("/v2/bookings", (c) => {
+    const email = c.req.query("attendeeEmail")?.toLowerCase();
+    const list = [...bookings.values()].filter((b) => !email || b.attendees.some((a) => a.email.toLowerCase() === email));
+    return c.json({ status: "success", data: list });
+  });
+
   app.get("/v2/bookings/:uid", (c) => {
     const b = bookings.get(c.req.param("uid"));
     return b ? c.json({ status: "success", data: b }) : c.json({ status: "error", error: { message: "not found" } }, 404);

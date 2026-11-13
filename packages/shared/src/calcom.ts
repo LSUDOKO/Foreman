@@ -62,3 +62,12 @@ export async function cancelBooking(c: CalClient, uid: string, reason: string): 
 }
 
 export const sameInstant = (a: string, b: string) => new Date(a).getTime() === new Date(b).getTime();
+
+/** Bookings for one attendee (used by the crash reconciler to find a booking by metadata.idemKey). */
+export async function listBookings(c: CalClient, attendeeEmail: string): Promise<CalBooking[]> {
+  const q = new URLSearchParams({ attendeeEmail });
+  const res = await c.f(`${c.base}/v2/bookings?${q}`, { headers: headers(c, CAL_VERSIONS.bookings) });
+  const j = (await res.json()) as any;
+  if (!res.ok) throw new Error(`calcom list bookings ${res.status}`);
+  return Array.isArray(j.data) ? j.data : (j.data?.bookings ?? []);
+}
