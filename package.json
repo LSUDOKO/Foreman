@@ -1,0 +1,17 @@
+{
+  "name": "foreman",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "services/*", "apps/*"],
+  "scripts": {
+    "setup": "bun scripts/setup.ts",
+    "dev:all": "bun scripts/dev-all.ts",
+    "e2e": "bun scripts/e2e.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.9.0"
+  }
+}
