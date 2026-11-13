@@ -1,5 +1,6 @@
 // Minimal Twilio Voice REST client over fetch. The base URL is swappable so the same code talks to
-// api.twilio.com (live) or the local sandbox carrier (TWILIO_API_BASE=http://localhost:4400).
+// api.twilio.com (live) or the local sandbox carrier — see twilioBase() in env.ts.
+import { twilioBase } from "./env";
 
 export interface TwilioCreds { accountSid: string; user: string; pass: string; base: string }
 
@@ -15,7 +16,7 @@ export interface TwilioCallRecord {
 
 export function twilioCreds(kind: "worker" | "oracle" = "worker"): TwilioCreds {
   const accountSid = process.env.TWILIO_ACCOUNT_SID ?? "ACsandbox";
-  const base = (process.env.TWILIO_API_BASE ?? "https://api.twilio.com").replace(/\/$/, "");
+  const base = twilioBase();
   if (kind === "oracle" && process.env.TWILIO_API_KEY_SID)
     return { accountSid, base, user: process.env.TWILIO_API_KEY_SID, pass: process.env.TWILIO_API_KEY_SECRET ?? "" };
   return { accountSid, base, user: accountSid, pass: process.env.TWILIO_AUTH_TOKEN ?? "sandbox" };

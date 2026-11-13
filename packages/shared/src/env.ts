@@ -31,11 +31,23 @@ export function adapterModes(): AdapterModes {
   return {
     serv: process.env.SERV_API_KEY ? "live" : "fallback",
     payments: live ? (kite().name === "mainnet" ? "kite-mainnet" : "kite-testnet") : "sim",
-    carrier: (process.env.TWILIO_API_BASE ?? "").includes("api.twilio.com") || (!process.env.TWILIO_API_BASE && !!process.env.TWILIO_AUTH_TOKEN) ? "twilio" : "sandbox",
-    calendar: (process.env.CALCOM_API_BASE ?? "").includes("api.cal.com") || (!process.env.CALCOM_API_BASE && !!process.env.CALCOM_API_KEY) ? "calcom" : "sandbox",
+    carrier: twilioBase().includes("api.twilio.com") ? "twilio" : "sandbox",
+    calendar: calBase().includes("api.cal.com") ? "calcom" : "sandbox",
     email: process.env.SMTP_USER ? "smtp" : "sandbox",
   };
 }
 
 export const num = (name: string, d: number) => (process.env[name] ? Number(process.env[name]) : d);
 export const str = (name: string, d: string) => process.env[name] || d;
+
+/** Live Twilio when credentials exist (or TWILIO_API_BASE says so), else the local sandbox carrier. */
+export function twilioBase(): string {
+  if (process.env.TWILIO_API_BASE) return process.env.TWILIO_API_BASE.replace(/\/$/, "");
+  return process.env.TWILIO_AUTH_TOKEN ? "https://api.twilio.com" : `${urls().sandbox}/twilio`;
+}
+
+/** Live Cal.com when an API key exists (or CALCOM_API_BASE says so), else the local sandbox calendar. */
+export function calBase(): string {
+  if (process.env.CALCOM_API_BASE) return process.env.CALCOM_API_BASE.replace(/\/$/, "");
+  return process.env.CALCOM_API_KEY ? "https://api.cal.com" : `${urls().sandbox}/cal`;
+}

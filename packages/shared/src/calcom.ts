@@ -1,6 +1,7 @@
 // Cal.com API v2 client. Versions pinned per endpoint from the API reference:
 // slots → 2024-09-04, bookings (create/get/cancel) → 2024-08-13.
-// CALCOM_API_BASE switches between api.cal.com and the local sandbox calendar.
+// calBase() switches between api.cal.com and the local sandbox calendar.
+import { calBase } from "./env";
 
 export const CAL_VERSIONS = { slots: "2024-09-04", bookings: "2024-08-13" } as const;
 
@@ -17,7 +18,7 @@ export interface CalBooking {
 export interface CalClient { base: string; key: string; f: typeof fetch }
 
 export function calClient(key = process.env.CALCOM_API_KEY ?? "sandbox", f: typeof fetch = fetch): CalClient {
-  return { base: (process.env.CALCOM_API_BASE ?? "https://api.cal.com").replace(/\/$/, ""), key, f };
+  return { base: calBase(), key, f };
 }
 
 const headers = (c: CalClient, v: string) => ({
