@@ -11,6 +11,7 @@ import { Payments } from "./pay";
 import { Runner } from "./runner";
 import { Store } from "./store";
 import { seedWorkers } from "./registry";
+import { reconcileBookings } from "./reconcile";
 
 const network = kite();
 const db = openDb();
@@ -57,6 +58,11 @@ const app = createApp({
   }),
 });
 
+// Before serving: settle any side effect a crash left half-done, by asking the calendar.
+await reconcileBookings(store, idem, log).then(
+  (r) => r.length && console.log(`reconciled ${r.length} pending booking key(s)`),
+  (e) => console.error("reconcile failed:", e.message),
+);
 setInterval(() => void runner.sweepExpired(), 30_000);
 
 const port = num("PORT", PORTS.foreman);
