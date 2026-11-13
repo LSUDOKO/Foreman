@@ -59,3 +59,10 @@ test("fallback audit flags missing disclosure and unauthorised promises", () => 
   expect(bad.unauthorisedPromises.length).toBe(1);
   expect(bad.quality).toBeLessThan(0.7);
 });
+
+test("planner output drift is normalized before validation", async () => {
+  const { normalizePlan, Plan } = await import("./plan");
+  const p = Plan.parse(normalizePlan({ order: [{ id: "c1", offers: "2026-11-16T04:30:00Z, 2026-11-16T05:00:00Z" }, { customer_id: "c2", offer: [{ start: "2026-11-16T10:30:00Z" }] }] }));
+  expect(p.order[0]).toMatchObject({ customerId: "c1", offer: ["2026-11-16T04:30:00Z", "2026-11-16T05:00:00Z"] });
+  expect(p.order[1]!.offer).toEqual(["2026-11-16T10:30:00Z"]);
+});

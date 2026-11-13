@@ -76,9 +76,25 @@ export async function planCalls(customers: Customer[], free: string[], tz: strin
       freeSlots: free.slice(0, 40),
     }),
     schema: Plan,
+    normalize: normalizePlan,
     effort: "low",
     timeoutMs: 30_000,
     fallback: () => fallbackPlan(customers, free, tz),
   });
   return { ...d, data: validatePlan(d.data, customers, free, tz) };
+}
+
+/** Accept the shapes models drift into: `offers`, a comma string, objects with `start`, `id` for `customerId`. */
+export function normalizePlan(raw: any): unknown {
+  const list = (v: any): string[] =>
+    Array.isArray(v) ? v.map((x) => (typeof x === "object" && x ? String(x.start ?? x.slot ?? x.time ?? "") : String(x))).filter(Boolean)
+      : typeof v === "string" ? v.split(/[,;]\s*/).filter(Boolean)
+      : v && typeof v === "object" ? list(Object.values(v)) : [];
+  const order = (raw?.order ?? raw?.calls ?? raw?.plan ?? []).map((o: any) => ({
+    customerId: String(o.customerId ?? o.customer_id ?? o.id ?? ""),
+    offer: list(o.offer ?? o.offers ?? o.slots),
+    reason: String(o.reason ?? o.why ?? ""),
+  }));
+  const skip = (raw?.skip ?? []).map((o: any) => ({ customerId: String(o.customerId ?? o.customer_id ?? o.id ?? ""), reason: String(o.reason ?? "") }));
+  return { order, skip };
 }
