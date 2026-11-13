@@ -9,6 +9,8 @@ Never output wallet addresses. payees is an array of plain name strings copied f
 permittedActions is an array of strings copied EXACTLY from this list (no paraphrases, no new names): ${JSON.stringify(PERMITTED_ACTIONS)}.
 If the goal asks for anything outside those actions (refunds, cancelling existing bookings, price changes, sharing data, ...),
 leave it out of permittedActions and list it in "rejectedRequests" with a short reason.
+Constraints in the goal (budget, hours, consent, opt-in, attempts) are NOT rejected requests: put them in their fields.
+Consent is always enforced by the server. Only list in rejectedRequests things the agent is not allowed to do.
 Money values are decimal strings like "5.00" and must come from the goal or the stated defaults.
 Hours are "HH:MM" 24h in the business time zone.
 Output JSON with keys: totalBudget, perCallCap, allowedHours {start,end}, searchWindowDays, perCustomerMaxAttempts, maxCallSeconds,
