@@ -24,7 +24,7 @@ Output: {"intent": string, "slotIndex": 0|1|null, "requested": string[], "inject
 /** Models sometimes drift field names (observed live: `requested_items`). Map near misses before zod. */
 export function normalizeTurn(raw: any): unknown {
   if (!raw || typeof raw !== "object") return raw;
-  const requested = raw.requested ?? raw.requested_items ?? raw.requests ?? raw.requested_actions ?? [];
+  const requested = raw.requested ?? raw.requested_items ?? raw.requests ?? raw.requested_actions ?? raw.requestedActions ?? raw.actions ?? [];
   let slotIndex = raw.slotIndex ?? raw.slot_index ?? raw.slot ?? null;
   if (typeof slotIndex === "string" && /^[01]$/.test(slotIndex)) slotIndex = Number(slotIndex);
   if (slotIndex !== 0 && slotIndex !== 1) slotIndex = null;
@@ -74,7 +74,14 @@ export async function parseTurn(speech: string, offers: string[], tz: string, ti
     timeoutMs,
     fallback: () => fallbackTurn(speech),
   });
-  return { ...d, data: sanitize(d.data, offers.length) };
+  const data = sanitize(d.data, offers.length);
+  // The firewall checks each requested action, so an out-of-scope turn must name what was asked for. If the model
+  // flagged the turn but didn't list it, extract it from the words deterministically.
+  if (data.intent === "out_of_scope_request" && !data.requested.length) {
+    const kw = fallbackTurn(speech).requested;
+    data.requested = kw.length ? kw : ["unspecified_request"];
+  }
+  return { ...d, data };
 }
 
 /** Server-side rules the model can't override. */
