@@ -4,5 +4,5 @@
   "private": true,
   "type": "module",
   "scripts": { "start": "bun src/index.ts" },
-  "dependencies": { "@foreman/shared": "workspace:*", "hono": "^4.13.0" }
+  "dependencies": { "@foreman/shared": "workspace:*", "hono": "^4.13.0", "viem": "^2.57.0" }
 }

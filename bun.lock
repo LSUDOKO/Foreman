@@ -25,6 +25,7 @@
       "dependencies": {
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
+        "viem": "^2.57.0",
       },
     },
     "services/foreman": {
@@ -33,6 +34,7 @@
       "dependencies": {
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
+        "viem": "^2.57.0",
       },
     },
     "services/phone-worker": {
@@ -41,6 +43,7 @@
       "dependencies": {
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
+        "viem": "^2.57.0",
       },
     },
     "services/proof-oracle": {
@@ -49,6 +52,7 @@
       "dependencies": {
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
+        "viem": "^2.57.0",
       },
     },
     "services/sandbox": {
@@ -57,6 +61,7 @@
       "dependencies": {
         "@foreman/shared": "workspace:*",
         "hono": "^4.13.0",
+        "viem": "^2.57.0",
       },
     },
   },
