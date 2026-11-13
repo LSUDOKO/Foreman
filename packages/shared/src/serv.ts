@@ -83,8 +83,12 @@ export async function servJson<T>(o: ServJsonOpts<T>): Promise<ServDecision<T>> 
   const t0 = performance.now();
   const c = servClient();
   let lastErr = c ? "" : "SERV_API_KEY not set";
+  // One deadline for the whole call (retry included), so a voice turn never blows Twilio's 15 s webhook limit.
+  const deadline = t0 + (o.timeoutMs ?? 20_000);
 
   for (let attempt = 0; c && attempt < 2; attempt++) {
+    const remaining = deadline - performance.now();
+    if (remaining < 1_000) break;
     try {
       const res = await c.chat.completions.create(
         {
@@ -96,7 +100,7 @@ export async function servJson<T>(o: ServJsonOpts<T>): Promise<ServDecision<T>> 
             { role: "user", content: attempt ? `${o.user}\n\nYour previous reply was invalid (${lastErr}). Return only valid JSON.` : o.user },
           ],
         } as any,
-        { timeout: o.timeoutMs ?? 20_000 },
+        { timeout: Math.round(remaining) },
       );
       const raw = extractJson(res.choices[0]?.message?.content ?? "");
       const data = o.schema.parse(o.normalize ? o.normalize(raw) : raw);
@@ -108,7 +112,7 @@ export async function servJson<T>(o: ServJsonOpts<T>): Promise<ServDecision<T>> 
       });
     } catch (e: any) {
       lastErr = String(e?.message ?? e).slice(0, 300);
-      if (e?.name === "APIConnectionTimeoutError" || e?.status >= 400) break; // don't burn the latency budget twice
+      if (/timeout|timed out/i.test(`${e?.name} ${e?.message}`) || e?.status >= 400) break; // don't burn the budget twice
     }
   }
   if (!o.fallback) throw new Error(`SERV ${o.purpose} failed: ${lastErr}`);
