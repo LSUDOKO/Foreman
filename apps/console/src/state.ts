@@ -104,7 +104,11 @@ export function deriveState(events: FeedEvent[]): State {
         for (const x of d.customers ?? []) Object.assign(getC(x.id, x.name), { ...x, consent: !!x.consent, steps: { eligible: e.ts } });
         break;
       case "contract_approved":
-        if (s.contract) Object.assign(s.contract, { status: "approved", approvedBy: d.by });
+        if (s.contract) {
+          Object.assign(s.contract, { status: "approved", approvedBy: d.by });
+          const j = (s.contract as any).json;
+          if (j?.approval) j.approval = { ...j.approval, approvedBy: d.by, approvedAt: d.approvedAt ?? e.ts };
+        }
         break;
       case "contract_started":
         if (s.contract) s.contract.status = "running";
