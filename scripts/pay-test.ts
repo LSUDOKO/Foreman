@@ -2,6 +2,7 @@
 //   bun scripts/pay-test.ts            # $0.01 from FOREMAN_PK to ORACLE_PAYTO through a local paywall, settled by Pieverse
 //   bun scripts/pay-test.ts --verify   # only ask the real facilitator to /verify a signed payment (works unfunded)
 import { Hono } from "hono";
+import { hashDomain } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { HttpFacilitator } from "@foreman/shared/facilitator";
 import { kite, txLink } from "@foreman/shared/kite";
@@ -32,11 +33,24 @@ if (process.argv.includes("--verify")) {
   const app = new Hono();
   const req = requirementFor(opts, { req: { url: "http://local/pay-test" } } as any);
   const header = await signPayment(payer, { x402Version: 2, resource: { url: "http://local/pay-test", description: "foreman pay-test", mimeType: "application/json" }, accepts: [req] }, req);
-  const v = await fac.verify(unb64<PaymentPayload>(header), req);
-  console.log("facilitator /verify →", JSON.stringify(v));
-  console.log(v.isValid ? "payload accepted by the live facilitator" : `rejected: ${v.invalidReason} (an unfunded wallet should fail on balance, not on format)`);
+  // 1. Our EIP-712 domain must equal the token's on-chain DOMAIN_SEPARATOR, or every live payment fails.
+  const ds = await fetch(net.rpc, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_call", params: [{ to: net.token.address, data: "0x3644e515" }, "latest"] }) });
+  const onchain = ((await ds.json()) as any).result;
+  const ours = hashDomain({ domain: { name: net.token.eip712Name, version: net.token.eip712Version, chainId: BigInt(net.chainId), verifyingContract: net.token.address }, types: { EIP712Domain: [{ name: "name", type: "string" }, { name: "version", type: "string" }, { name: "chainId", type: "uint256" }, { name: "verifyingContract", type: "address" }] } });
+  console.log(`EIP-712 domain: ${ours === onchain ? "matches on-chain DOMAIN_SEPARATOR" : `MISMATCH (ours ${ours}, chain ${onchain})`}`);
+  // 2. A valid payload must get past signature checks; a tampered one must not.
+  const good = unb64<PaymentPayload>(header);
+  const v = await fac.verify(good, req);
+  const bad = structuredClone(good);
+  const sig = bad.payload.signature;
+  bad.payload.signature = `${sig.slice(0, 10)}${sig[10] === "a" ? "b" : "a"}${sig.slice(11)}` as `0x${string}`;
+  const t = await fac.verify(bad, req);
+  console.log("valid payload    →", JSON.stringify(v));
+  console.log("tampered payload →", JSON.stringify(t));
+  const sigChecked = /signature/i.test(t.invalidReason ?? "") && !/signature/i.test(v.invalidReason ?? "");
+  console.log(sigChecked ? "facilitator verifies our signature; the valid one fails only on " + (v.invalidReason ?? "nothing") : "could not confirm signature checking");
   void app;
-  process.exit(0);
+  process.exit(ours === onchain && sigChecked ? 0 : 1);
 }
 
 const app = new Hono();

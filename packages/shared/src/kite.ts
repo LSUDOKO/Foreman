@@ -1,7 +1,8 @@
 // Network constants follow kite-x402-hono `src/networks.ts` (Apache-2.0, BrK),
 // which in turn follows gokite-ai/kite-x402-services. Verified live on 2026-11-14:
 // rpc-testnet.gokite.ai returns chainId 0x940 (2368); pieUSD name()="pieUSD", decimals()=18;
-// facilitator.pieverse.io/v2/supported lists exact/eip155:2368.
+// facilitator.pieverse.io/v2/supported lists exact/eip155:2368; the token's on-chain DOMAIN_SEPARATOR equals
+// hash({name:"pieUSD", version:"1", chainId:2368, verifyingContract}) — `bun run pay-test -- --verify` re-checks all of this.
 export type KiteNetworkName = "testnet" | "mainnet";
 
 export interface KiteNetwork {
