@@ -19,9 +19,12 @@ export class HttpFacilitator implements Facilitator {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ x402Version: 2, paymentPayload: p, paymentRequirements: r }),
     });
-    const body = (await res.json().catch(() => ({}))) as T;
-    if (!res.ok && path === "verify") return { isValid: false, invalidReason: `facilitator_http_${res.status}` } as T;
-    return body;
+    const body = (await res.json().catch(() => ({}))) as any;
+    if (!res.ok && path === "verify")
+      return { isValid: false, invalidReason: `facilitator_http_${res.status}${body?.issues ? `: ${JSON.stringify(body.issues).slice(0, 300)}` : ""}` } as T;
+    if (!res.ok && path === "settle")
+      return { success: false, errorReason: `facilitator_http_${res.status}: ${JSON.stringify(body).slice(0, 300)}`, transaction: "", network: r.network } as T;
+    return body as T;
   }
   verify(p: PaymentPayload, r: PaymentRequirements) { return this.post<VerifyResponse>("verify", p, r); }
   settle(p: PaymentPayload, r: PaymentRequirements) { return this.post<SettleResponse>("settle", p, r); }
