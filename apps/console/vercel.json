@@ -1,1 +1,1 @@
-{ "rewrites": [{ "source": "/((?!recorded-run.json|assets/).*)", "destination": "/index.html" }] }
+{ "rewrites": [{ "source": "/app/:path*", "destination": "/index.html" }, { "source": "/app", "destination": "/index.html" }] }
