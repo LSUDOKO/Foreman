@@ -13,6 +13,13 @@ import { payAndFetch, signPayment } from "@foreman/shared/x402-buyer";
 import { paywall, requirementFor } from "@foreman/shared/x402-seller";
 
 const net = kite();
+// With fUSD the facilitator is ours (services/facilitator); start it for this run if it isn't up.
+let facProc: ReturnType<typeof Bun.spawn> | undefined;
+if (/localhost:4500/.test(net.facilitatorUrl) && !(await fetch(`${net.facilitatorUrl}/healthz`).then((r) => r.ok, () => false))) {
+  facProc = Bun.spawn(["bun", "services/facilitator/src/index.ts"], { stdout: "inherit", stderr: "inherit" });
+  process.on("exit", () => facProc?.kill());
+  for (let i = 0; i < 50 && !(await fetch(`${net.facilitatorUrl}/healthz`).then((r) => r.ok, () => false)); i++) await Bun.sleep(200);
+}
 const fac = new HttpFacilitator(net.facilitatorUrl);
 const payer = pk("FOREMAN_PK");
 const payTo = addr("ORACLE_PAYTO");
@@ -58,7 +65,7 @@ app.post("/pay-test", paywall(opts), (c) => c.json({ ok: true }));
 const server = Bun.serve({ port: 0, fetch: app.fetch });
 const r = await payAndFetch(`http://localhost:${server.port}/pay-test`, { method: "POST" }, { pk: payer, network: net.caip2, guard: () => {} });
 server.stop();
-console.log(`status ${r.res.status}`, JSON.stringify(r.receipt));
+console.log(`status ${r.res.status}`, JSON.stringify(r.receipt), r.res.ok ? "" : (await r.res.text()).slice(0, 400));
 const link = txLink(r.receipt?.transaction, net);
 console.log(link ? `Kitescan: ${link}` : "no transaction (see receipt above)");
 process.exit(r.receipt?.success ? 0 : 1);

@@ -3,7 +3,7 @@
 //   bun run e2e            # fresh DB, fast sandbox timings
 //   bun run e2e --keep     # leave services running afterwards
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { SERVICES, startAll, waitHealthy } from "./dev-all";
+import { HEALTH_PORTS, SERVICES, startAll, waitHealthy } from "./dev-all";
 
 const API = "http://localhost:4000";
 const tz = process.env.BUSINESS_TZ ?? "Asia/Kolkata";
@@ -45,7 +45,7 @@ const fails: string[] = [];
 const expect = (ok: boolean, msg: string) => { console.log(`${ok ? "  ✓" : "  ✗"} ${msg}`); if (!ok) fails.push(msg); };
 
 try {
-  await waitHealthy([4400, 4210, 4110, 4111, 4000, 4300]);
+  await waitHealthy(HEALTH_PORTS());
   const modes = await j("GET", "/api/modes");
   console.log(`modes: ${JSON.stringify(modes.modes)}\ngoal: ${GOAL}\n`);
 
