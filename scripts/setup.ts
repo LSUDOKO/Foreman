@@ -13,8 +13,9 @@ for (const line of text.split("\n")) {
 const added: string[] = [];
 const set = (k: string, v: string) => { if (!env.get(k)) { env.set(k, v); added.push(k); } };
 
-for (const n of ["BUSINESS", "FOREMAN", "ORACLE_SIGNER"]) set(`${n}_PK`, generatePrivateKey());
-for (const n of ["BUSINESS", "FOREMAN", "ORACLE_SIGNER"]) set(`${n}_ADDRESS`, privateKeyToAccount(env.get(`${n}_PK`) as `0x${string}`).address);
+// FACILITATOR only pays gas for the self-hosted facilitator (services/facilitator), never holds tokens.
+for (const n of ["BUSINESS", "FOREMAN", "ORACLE_SIGNER", "FACILITATOR"]) set(`${n}_PK`, generatePrivateKey());
+for (const n of ["BUSINESS", "FOREMAN", "ORACLE_SIGNER", "FACILITATOR"]) set(`${n}_ADDRESS`, privateKeyToAccount(env.get(`${n}_PK`) as `0x${string}`).address);
 // Receive-only addresses: services never need these keys. They're kept in .data/receive-keys.json (gitignored)
 // so you can sweep testnet funds later.
 const receive: Record<string, string> = existsSync(".data/receive-keys.json") ? JSON.parse(readFileSync(".data/receive-keys.json", "utf8")) : {};
