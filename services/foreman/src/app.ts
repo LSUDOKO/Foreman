@@ -61,7 +61,7 @@ export function createApp(d: AppDeps) {
     return Object.fromEntries(Object.entries(ids).map(([n, v]) => [v.address.toLowerCase(), n]));
   };
 
-  app.get("/api/modes", async (c) => c.json({ modes: adapterModes(), network: d.network.name, chainId: d.network.chainId, explorer: d.network.explorer, identities: await d.identities() }));
+  app.get("/api/modes", async (c) => c.json({ modes: adapterModes(), network: d.network.name, chainId: d.network.chainId, explorer: d.network.explorer, token: { symbol: d.network.token.symbol, address: d.network.token.address }, identities: await d.identities() }));
 
   app.post("/api/contracts/compile", async (c) => {
     const { goal, csv } = (await c.req.json().catch(() => ({}))) as { goal?: string; csv?: string };
@@ -144,7 +144,7 @@ export function createApp(d: AppDeps) {
     const k = need(id);
     if (!k) return c.json({ error: "not_found" }, 404);
     return c.json({
-      exportedAt: nowIso(), contractId: id, hash: k.hash, network: { name: d.network.name, chainId: d.network.chainId, explorer: d.network.explorer },
+      exportedAt: nowIso(), contractId: id, hash: k.hash, network: { name: d.network.name, chainId: d.network.chainId, explorer: d.network.explorer, token: { symbol: d.network.token.symbol, address: d.network.token.address } },
       modes: adapterModes(), audit: log.verify(), events: log.since(0, id),
     });
   });

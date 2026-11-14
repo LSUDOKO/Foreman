@@ -68,7 +68,7 @@ export function useCountUp(target: number, ms = 600) {
 }
 
 // ───────── event source: live SSE or recorded replay ─────────
-export interface Recording { exportedAt: string; contractId: string; hash: string; network: { name: string; chainId: number; explorer: string }; modes: Modes; audit: { ok: boolean; events: number; head: string }; events: FeedEvent[] }
+export interface Recording { exportedAt: string; contractId: string; hash: string; network: { name: string; chainId: number; explorer: string; token?: { symbol: string; address: string } }; modes: Modes; audit: { ok: boolean; events: number; head: string }; events: FeedEvent[] }
 
 export interface Source {
   mode: "loading" | "live" | "replay";

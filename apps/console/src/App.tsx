@@ -77,7 +77,7 @@ function ReplayBar({ src }: { src: Source }) {
       </div>
       <p className="mt-1 text-[11.5px] text-faint">
         Replay of a recorded run · SERV {m.serv} · calls {m.carrier} · calendar {m.calendar} · {new Date(r.recording.exportedAt).toLocaleString()}
-        {m.payments === "sim" ? " · simulated settlement (local facilitator) — Kitescan links appear for live testnet runs" : " · every tx link is live on Kitescan"}
+        {m.payments === "sim" ? " · simulated settlement (local facilitator) — Kitescan links appear for live testnet runs" : ` · every tx link is live on Kitescan${r.recording.network.token?.symbol === "fUSD" ? " · paid in fUSD, our EIP-3009 test token, settled by our own facilitator (testnet pieUSD isn't on the public faucet)" : ""}`}
         {r.recording.audit?.ok && <> · audit chain verified ({r.recording.audit.events} events)</>}
       </p>
       <div className="mt-1 hidden flex-wrap gap-3 text-[11px] text-faint md:flex">
