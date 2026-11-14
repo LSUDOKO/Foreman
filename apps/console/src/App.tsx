@@ -43,7 +43,7 @@ function ModeBadges({ modes }: { modes: Modes | null }) {
     ["email", modes.email, modes.email === "smtp"],
   ];
   return (
-    <div className="hidden items-center gap-1 xl:flex" aria-label="Adapter modes">
+    <div className="hidden items-center gap-1 lg:flex" aria-label="Adapter modes">
       {items.map(([k, v, real]) => (
         <Badge key={k} tone={real ? "in" : "neutral"} mono title={real ? `${k}: real service` : `${k}: simulated locally`}>{k} {v}</Badge>
       ))}
@@ -202,7 +202,7 @@ function Shell() {
               )}
               <div className="ml-1 hidden items-center gap-2.5 border-l border-line pl-3 sm:flex">
                 <span className="grid h-9 w-9 place-items-center rounded-full text-[13px] font-bold text-white" style={{ background: "linear-gradient(135deg,#c8481a,#5a1530)" }}>{business[0]}</span>
-                <div className="leading-tight">
+                <div className="hidden whitespace-nowrap leading-tight 2xl:block">
                   <div className="text-[13.5px] font-semibold">{business}</div>
                   <div className="font-mono text-[11px] text-muted">{(() => { const a = (state.identities[business] ?? src.identities?.[business])?.address; return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "clinic wallet"; })()}</div>
                 </div>
