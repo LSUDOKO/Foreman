@@ -1,0 +1,14 @@
+{
+  "name": "@foreman/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun src/stdio.ts",
+    "worker:dry": "wrangler deploy --dry-run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.0"
+  }
+}

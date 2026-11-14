@@ -1,0 +1,10 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "foreman-mcp",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // Public URL of the Foreman service (must be reachable from Cloudflare).
+  "vars": { "FOREMAN_URL": "https://foreman.example.com" }
+  // Secrets: wrangler secret put CONSOLE_TOKEN; wrangler secret put MCP_TOKEN
+}

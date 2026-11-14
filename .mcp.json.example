@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "foreman": {
+      "command": "bun",
+      "args": ["/absolute/path/to/Foreman/services/mcp/src/stdio.ts"],
+      "env": {
+        "FOREMAN_URL": "http://localhost:4000",
+        "CONSOLE_TOKEN": "<your CONSOLE_TOKEN, or remove if unset>"
+      }
+    }
+  }
+}
