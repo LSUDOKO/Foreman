@@ -61,7 +61,7 @@ function Hero({ run }: { run: ReturnType<typeof useRun> }) {
         <div key={`${x}-${y}`} className="absolute" style={{ left: `${x}%`, top: `${y}%` }}><Cross className="-translate-x-1/2 -translate-y-1/2" /></div>
       ))}
       {/* overprinted orbs */}
-      <motion.div className="absolute inset-0 -z-10" initial={{ opacity: 0, scale: 1.08 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.6, ease: [0.2, 0.8, 0.2, 1] }}>
+      <motion.div className="absolute inset-0 -z-10 origin-center max-md:!scale-[.6]" initial={{ opacity: 0, scale: 1.08 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.6, ease: [0.2, 0.8, 0.2, 1] }}>
         <Orb color={C.ember} size={520} style={{ left: "34%", top: "-24%" }} y={yA} />
         <Orb color={C.maroon} size={420} style={{ left: "52%", top: "-10%", mixBlendMode: "multiply" }} y={yA} rotate={rot} />
         <Orb color={C.mustard} size={300} style={{ left: "64%", top: "16%", mixBlendMode: "multiply" }} y={yC} />
@@ -78,10 +78,11 @@ function Hero({ run }: { run: ReturnType<typeof useRun> }) {
       <Corner pos="br">x402 exact<br />EIP-3009</Corner>
 
       <motion.div style={{ scale, opacity: fade }} className="relative z-10 flex h-full flex-col items-center justify-center px-5 text-center">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 h-[70%] -translate-y-1/2 md:hidden" style={{ background: "radial-gradient(closest-side, rgba(235,227,210,.92), rgba(235,227,210,.6) 60%, transparent)" }} />
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
           className="flex items-center gap-3 md:gap-5">
-          <Mark size={88} className="h-14 w-14 md:h-[96px] md:w-[96px]" />
-          <h1 className="display text-[64px] text-ink sm:text-[96px] md:text-[132px]">Foreman</h1>
+          <Mark size={88} className="h-10 w-10 sm:h-14 sm:w-14 md:h-[96px] md:w-[96px]" />
+          <h1 className="display text-[50px] text-ink sm:text-[96px] md:text-[132px]">Foreman</h1>
         </motion.div>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9, duration: 0.6 }} className="mt-5 flex flex-wrap justify-center gap-2">
           <span className="chip">Rebooks no-shows</span><span className="chip">Paid per outcome</span>
@@ -207,7 +208,36 @@ function steps(run: NonNullable<ReturnType<typeof useRun>>): Step[] {
   ];
 }
 
+function useWide() {
+  const q = "(min-width: 768px)";
+  const [wide, setWide] = useState(() => matchMedia(q).matches);
+  useEffect(() => { const m = matchMedia(q); const f = () => setWide(m.matches); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
+  return wide;
+}
+
 function How({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
+  return useWide() ? <HowPinned run={run} /> : <HowStacked run={run} />;
+}
+
+function HowStacked({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
+  const list = useMemo(() => steps(run), [run]);
+  return (
+    <section id="how" className="px-5 py-20">
+      <h2 className="display mb-10 text-[40px]">One run,<br />start to paid.</h2>
+      <ol className="space-y-12">
+        {list.map((st, k) => (
+          <motion.li key={st.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.5 }}>
+            <div className="flex items-baseline gap-3"><span className="num text-[12px] text-ember">{String(k + 1).padStart(2, "0")}</span><span className="text-[20px] font-semibold tracking-tight" style={{ fontStretch: "112%" }}>{st.title}</span></div>
+            <p className="mb-4 mt-1.5 pl-8 text-[15px] leading-relaxed text-ink/75">{st.body}</p>
+            {st.visual}
+          </motion.li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function HowPinned({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
   const ref = useRef<HTMLElement>(null);
   const list = useMemo(() => steps(run), [run]);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
@@ -231,9 +261,9 @@ function How({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
                   </div>
                   <AnimatePresence initial={false}>
                     {k === i && (
-                      <motion.p initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden pl-9 text-[15px] leading-relaxed text-ink/75">
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden pl-9 text-[15px] leading-relaxed text-ink/75">
                         <span className="block max-w-[46ch] pb-2">{st.body}</span>
-                      </motion.p>
+                      </motion.div>
                     )}
                   </AnimatePresence>
                 </li>
