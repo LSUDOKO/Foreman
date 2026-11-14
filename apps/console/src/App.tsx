@@ -1,7 +1,9 @@
 import {
   Ban, Bot, Briefcase, Building2, FileText, LayoutDashboard, Menu, Pause, Play, Receipt, Rewind, ShieldAlert, Users,
 } from "lucide-react";
+import { MotionConfig } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Wordmark } from "./brand";
 import { AppCtx } from "./ctx";
 import { EventDetail, describe } from "./feed";
 import { api, human, useNow, useSource, usd } from "./lib";
@@ -55,7 +57,7 @@ function ReplayBar({ src }: { src: Source }) {
   const moments = useMemo(() => demoMoments(r.recording.events), [r.recording]);
   const m = r.recording.modes;
   return (
-    <div className="border-b border-line bg-[#0F1218] px-4 py-2">
+    <div className="border-b border-line bg-surface/70 px-4 py-2">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1">
           <Button tone="ghost" onClick={() => { r.setIndex(0); r.setPlaying(true); }} title="Restart"><Rewind size={14} /></Button>
@@ -65,7 +67,7 @@ function ReplayBar({ src }: { src: Source }) {
           ))}
         </div>
         <div className="relative min-w-[240px] flex-1">
-          <input type="range" min={0} max={total} value={r.index} onChange={(e) => { r.setIndex(Number(e.target.value)); }} aria-label="Scrub replay" className="w-full accent-[#7C5CFF]" />
+          <input type="range" min={0} max={total} value={r.index} onChange={(e) => { r.setIndex(Number(e.target.value)); }} aria-label="Scrub replay" className="w-full accent-[#5a1530]" />
           <div className="pointer-events-none absolute inset-x-0 top-[-2px] h-0">
             {moments.map((mo) => (
               <button key={mo.label} title={mo.label} onClick={() => r.setIndex(mo.index + 1)} style={{ left: `${((mo.index + 1) / total) * 100}%` }}
@@ -132,13 +134,10 @@ function Shell() {
 
   return (
     <AppCtx.Provider value={{ state, src, now, live, open: setDetail, act, go }}>
-      <div className="flex h-full flex-col">
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line px-4">
+      <div className="grain flex h-full flex-col">
+        <header className="relative z-20 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface/70 px-4 backdrop-blur-xl">
           <button className="text-muted md:hidden" onClick={() => setNavOpen(!navOpen)} aria-label="Menu"><Menu size={18} /></button>
-          <div className="flex items-center gap-2 font-semibold tracking-tight">
-            <svg width="16" height="16" viewBox="0 0 32 32" aria-hidden><path d="M16 3 29 16 16 29 3 16Z" fill="#7C5CFF" /><path d="M16 10.5 21.5 16 16 21.5 10.5 16Z" fill="#0B0D12" /></svg>
-            Foreman
-          </div>
+          <a href="/" aria-label="Foreman home"><Wordmark size={17} /></a>
           <span className="hidden text-muted sm:inline">{business}</span>
           {c && (
             <span className="hidden items-center gap-2 text-[12px] text-muted lg:flex">
@@ -205,5 +204,5 @@ function Shell() {
 }
 
 export default function App() {
-  return <Toaster><Shell /></Toaster>;
+  return <MotionConfig reducedMotion="user"><Toaster><Shell /></Toaster></MotionConfig>;
 }

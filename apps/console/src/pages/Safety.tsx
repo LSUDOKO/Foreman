@@ -17,7 +17,7 @@ export default function Safety() {
               <button onClick={() => setFilter(null)} className={cx("rounded-md border px-2 py-0.5 text-[12px]", !filter ? "border-accent text-ink" : "border-line text-muted")}>All</button>
               {codes.map((c) => (
                 <button key={c} onClick={() => setFilter(c === filter ? null : c)} aria-pressed={c === filter}
-                  className={cx("rounded-md border px-2 py-0.5 font-mono text-[11.5px]", c === filter ? "border-refuse text-[#FF8A8A]" : "border-line text-muted hover:text-ink")}>
+                  className={cx("rounded-md border px-2 py-0.5 font-mono text-[11.5px]", c === filter ? "border-refuse text-refuse" : "border-line text-muted hover:text-ink")}>
                   {c} <span className="text-faint">{state.refusals.filter((r) => r.code === c).length}</span>
                 </button>
               ))}

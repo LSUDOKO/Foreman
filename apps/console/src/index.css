@@ -1,19 +1,23 @@
 @import "tailwindcss";
 
+/* Foreman brand: printed paper, halftone ink, dashed survey grid. */
 @theme {
-  --color-bg: #0b0d12;
-  --color-surface: #12151c;
-  --color-raised: #171b24;
-  --color-line: #222733;
-  --color-ink: #e6e8ee;
-  --color-muted: #8a93a6;
-  --color-faint: #5d6576;
-  --color-accent: #7c5cff;
-  --color-in: #22c55e;
-  --color-out: #f59e0b;
-  --color-refuse: #ef4444;
-  --color-proof: #38bdf8;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-bg: #ebe3d2;        /* paper */
+  --color-surface: #f4eee2;   /* card paper */
+  --color-raised: #e2d8c3;
+  --color-line: #cbbd9f;
+  --color-ink: #2a0e19;       /* aubergine ink */
+  --color-muted: #6b5560;
+  --color-faint: #8f7c84;
+  --color-accent: #5a1530;    /* maroon: primary action */
+  --color-ember: #c8481a;
+  --color-mustard: #d49a28;
+  --color-in: #2c6a3a;
+  --color-out: #9a5a0c;
+  --color-refuse: #ae2a1f;
+  --color-proof: #1d5880;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -26,12 +30,66 @@ body {
   font-size: 13px;
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: "cv11", "ss01";
 }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
-::selection { background: color-mix(in srgb, var(--color-accent) 40%, transparent); }
+.display { font-family: var(--font-display); font-weight: 800; font-stretch: 125%; letter-spacing: -0.035em; line-height: 0.92; }
+.wide { font-stretch: 118%; }
+:focus-visible { outline: 2px solid var(--color-ember); outline-offset: 2px; border-radius: 4px; }
+::selection { background: color-mix(in srgb, var(--color-mustard) 55%, transparent); }
 * { scrollbar-width: thin; scrollbar-color: var(--color-line) transparent; }
+
+/* Paper grain: SVG turbulence multiplied over everything. */
+.grain::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: .32; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .33  0 0 0 0 .24  0 0 0 0 .18  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Dashed survey grid with registration crosses. */
+.survey {
+  background-image:
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-ink) 22%, transparent) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-ink) 22%, transparent) 0 6px, transparent 6px 12px);
+  background-size: 100% 1px, 1px 100%;
+  background-repeat: no-repeat;
+}
+.dash-x { height: 1px; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-ink) 28%, transparent) 0 6px, transparent 6px 12px); }
+.dash-y { width: 1px; background: repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-ink) 28%, transparent) 0 6px, transparent 6px 12px); }
+
+/* Halftone orb: a soft core plus a dotted fringe, like an overprinted risograph blob. */
+.orb { position: absolute; border-radius: 9999px; pointer-events: none; }
+.orb::before, .orb::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--c); }
+.orb::before { filter: blur(28px); transform: scale(.82); opacity: .92; }
+.orb::after {
+  -webkit-mask: radial-gradient(circle at center, #000 0 1.15px, transparent 1.6px) 0 0 / 5px 5px, radial-gradient(closest-side, #000 55%, transparent 100%);
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+  mask: radial-gradient(circle at center, #000 0 1.15px, transparent 1.6px) 0 0 / 5px 5px, radial-gradient(closest-side, #000 55%, transparent 100%);
+  opacity: .9;
+}
+
+/* Liquid glass button. */
+.glass {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  border-radius: 9999px; padding: .8rem 1.4rem; font-weight: 600; font-stretch: 112%; letter-spacing: -.01em;
+  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.18));
+  border: 1px solid rgba(255,255,255,.7);
+  backdrop-filter: blur(14px) saturate(170%); -webkit-backdrop-filter: blur(14px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 -10px 18px -10px rgba(90,21,48,.22), 0 10px 28px -12px rgba(90,21,48,.45), 0 0 0 1px rgba(42,14,25,.08);
+  transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s;
+}
+.glass::before {
+  content: ""; position: absolute; inset: -40%; z-index: -1; pointer-events: none;
+  background: radial-gradient(120px 80px at var(--mx, 30%) var(--my, 0%), rgba(255,255,255,.85), transparent 70%);
+  transition: opacity .3s; opacity: .7;
+}
+.glass:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 #fff, inset 0 -12px 20px -10px rgba(90,21,48,.28), 0 16px 34px -12px rgba(90,21,48,.5), 0 0 0 1px rgba(42,14,25,.1); }
+.glass:active { transform: translateY(1px) scale(.99); }
+.glass-ink { color: #f6efe2; background: linear-gradient(180deg, rgba(110,30,62,.92), rgba(58,14,32,.88)); border-color: rgba(255,210,190,.35); }
+.glass-ink::before { background: radial-gradient(120px 70px at var(--mx, 30%) var(--my, 0%), rgba(255,190,150,.55), transparent 70%); }
+
+.chip { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid color-mix(in srgb, var(--color-ink) 55%, transparent); border-radius: 9999px; padding: .28rem .8rem; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .02em; }
+.silver { background: linear-gradient(180deg, #ffffff 0%, #d9d4dc 45%, #8d8492 60%, #e8e4ea 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 @keyframes flash-in { from { background: color-mix(in srgb, var(--color-in) 18%, transparent); } to { background: transparent; } }
 @keyframes flash-out { from { background: color-mix(in srgb, var(--color-out) 16%, transparent); } to { background: transparent; } }

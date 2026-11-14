@@ -51,7 +51,7 @@ export function describe(e: FeedEvent): Desc | null {
 }
 
 const TONE_ICON: Record<Tone, string> = {
-  neutral: "text-muted", accent: "text-[#B7A6FF]", in: "text-in", out: "text-out", refuse: "text-refuse", proof: "text-proof",
+  neutral: "text-muted", accent: "text-accent", in: "text-in", out: "text-out", refuse: "text-refuse", proof: "text-proof",
 };
 
 /** The live feed. Newest on top; money rows flash their colour once; customer_state rows are hidden as noise. */

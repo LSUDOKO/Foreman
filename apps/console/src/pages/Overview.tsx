@@ -10,7 +10,7 @@ function Kpi({ label, value, fmt, sub, tone }: { label: string; value: number; f
   return (
     <div className="min-w-0 rounded-lg border border-line bg-surface px-4 py-3">
       <div className="text-[12px] text-muted">{label}</div>
-      <div className={cx("num mt-1 text-[22px] font-medium tracking-tight", tone)}>{fmt(v)}</div>
+      <div className={cx("display mt-1.5 text-[26px] tabular-nums", tone)}>{fmt(v)}</div>
       {sub && <div className="mt-0.5 truncate text-[11.5px] text-faint">{sub}</div>}
     </div>
   );

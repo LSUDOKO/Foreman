@@ -10,17 +10,17 @@ function RepChart({ w, floor }: { w: Worker; floor: number }) {
     <div className="h-[110px]">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -24 }}>
-          <CartesianGrid stroke="#222733" vertical={false} />
+          <CartesianGrid stroke="#cbbd9f" vertical={false} />
           <XAxis dataKey="i" hide />
-          <YAxis domain={[0, 100]} ticks={[0, 50, 100]} tick={{ fill: "#5d6576", fontSize: 10, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
-          <ReferenceLine y={floor} stroke="#EF4444" strokeDasharray="3 3" strokeOpacity={0.6} />
+          <YAxis domain={[0, 100]} ticks={[0, 50, 100]} tick={{ fill: "#8f7c84", fontSize: 10, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
+          <ReferenceLine y={floor} stroke="#ae2a1f" strokeDasharray="3 3" strokeOpacity={0.6} />
           <Tooltip
-            contentStyle={{ background: "#171b24", border: "1px solid #222733", borderRadius: 6, fontSize: 12 }}
+            contentStyle={{ background: "#f4eee2", border: "1px solid #cbbd9f", borderRadius: 6, fontSize: 12 }}
             labelFormatter={() => ""}
             formatter={(v: any, _n: any, p: any) => [`${v} · ${p.payload.reason}`, "reputation"]}
           />
-          <Line type="stepAfter" dataKey="rep" stroke={w.reputation < floor ? "#EF4444" : "#7C5CFF"} strokeWidth={2} dot={{ r: 2.5, strokeWidth: 0, fill: "#8A93A6" }} isAnimationActive={false} />
-          <Line dataKey="drop" stroke="none" dot={{ r: 5, fill: "#EF4444", stroke: "#0B0D12", strokeWidth: 2 }} isAnimationActive={false} />
+          <Line type="stepAfter" dataKey="rep" stroke={w.reputation < floor ? "#ae2a1f" : "#5a1530"} strokeWidth={2} dot={{ r: 2.5, strokeWidth: 0, fill: "#6b5560" }} isAnimationActive={false} />
+          <Line dataKey="drop" stroke="none" dot={{ r: 5, fill: "#ae2a1f", stroke: "#f4eee2", strokeWidth: 2 }} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>

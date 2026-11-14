@@ -22,10 +22,10 @@ export function Card({ title, aside, children, className, pad = true }: { title?
 
 const TONES = {
   neutral: "border-line text-muted bg-raised",
-  accent: "border-accent/40 text-[#B7A6FF] bg-accent/10",
+  accent: "border-accent/40 text-accent bg-accent/10",
   in: "border-in/40 text-in bg-in/10",
   out: "border-out/40 text-out bg-out/10",
-  refuse: "border-refuse/40 text-[#FF8A8A] bg-refuse/10",
+  refuse: "border-refuse/40 text-refuse bg-refuse/10",
   proof: "border-proof/40 text-proof bg-proof/10",
 } as const;
 export type Tone = keyof typeof TONES;
@@ -45,9 +45,9 @@ export const Code = ({ code, shake }: { code: string; shake?: boolean }) => (
 
 export function Button({ children, onClick, tone = "default", disabled, title, type = "button", className }: { children: ReactNode; onClick?: () => void; tone?: "default" | "primary" | "danger" | "ghost" | "in"; disabled?: boolean; title?: string; type?: "button" | "submit"; className?: string }) {
   const t = {
-    default: "border-line bg-raised text-ink hover:border-[#323949]",
-    primary: "border-accent bg-accent text-white hover:bg-[#6C4BF5]",
-    danger: "border-refuse bg-refuse text-white hover:bg-[#DC3535]",
+    default: "border-line bg-raised text-ink hover:border-faint",
+    primary: "border-accent bg-accent text-white hover:bg-[#6e1e3e]",
+    danger: "border-refuse bg-refuse text-white hover:bg-[#93221a]",
     ghost: "border-transparent text-muted hover:text-ink hover:bg-raised",
     in: "border-in/60 bg-in/15 text-in hover:bg-in/25",
   }[tone];
@@ -121,7 +121,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-40">
-          <motion.div className="absolute inset-0 bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
+          <motion.div className="absolute inset-0 bg-[#2a0e19]/30" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
           <motion.aside
             role="dialog"
             aria-modal="true"
@@ -144,7 +144,7 @@ export function Dialog({ open, onClose, title, children }: { open: boolean; onCl
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-0 bg-[#2a0e19]/40" onClick={onClose} />
       <div role="dialog" aria-modal="true" aria-label={title} className="relative w-full max-w-[420px] rounded-xl border border-line bg-surface p-5 shadow-2xl">
         <h3 className="mb-3 text-[15px] font-semibold">{title}</h3>
         {children}
