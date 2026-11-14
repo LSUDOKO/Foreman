@@ -56,6 +56,14 @@ export function kite(name = process.env.KITE_NETWORK ?? "testnet"): KiteNetwork 
     rpc: process.env.KITE_RPC ?? n.rpc,
     explorer: (process.env.KITE_EXPLORER ?? n.explorer).replace(/\/$/, ""),
     facilitatorUrl: process.env.FACILITATOR_URL ?? n.facilitatorUrl,
+    // A self-deployed EIP-3009 token (scripts/deploy-token.ts) replaces the default when set.
+    token: process.env.KITE_TOKEN_ADDRESS ? {
+      address: process.env.KITE_TOKEN_ADDRESS as `0x${string}`,
+      symbol: process.env.KITE_TOKEN_SYMBOL ?? "fUSD",
+      decimals: Number(process.env.KITE_TOKEN_DECIMALS ?? 18),
+      eip712Name: process.env.KITE_TOKEN_NAME ?? "Foreman Test USD",
+      eip712Version: process.env.KITE_TOKEN_VERSION ?? "1",
+    } : n.token,
   };
 }
 

@@ -2,7 +2,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { kite } from "./kite";
 import type { AdapterModes, Hex } from "./types";
 
-export const PORTS = { foreman: 4000, clearcall: 4110, quickdial: 4111, oracle: 4210, payer: 4300, sandbox: 4400, console: 5173 } as const;
+export const PORTS = { foreman: 4000, clearcall: 4110, quickdial: 4111, oracle: 4210, payer: 4300, sandbox: 4400, facilitator: 4500, console: 5173 } as const;
 
 const local = (p: number) => `http://localhost:${p}`;
 
