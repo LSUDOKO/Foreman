@@ -11,12 +11,17 @@ SERV Hackathon Edition 02 · **Track 02 (Kite)** · new project, built during th
 | Built with | |
 |---|---|
 | **SERV Reasoning** | contract compiler (`serv_shadow_agent`), call planner, worker selection, live turn parsing (`serv_prompt_guard`), transcript audit (`serv_shadow_agent`) |
-| **Kite** | testnet chain 2368, x402 v2 "exact" (EIP-3009), pieUSD, Pieverse facilitator, network constants from kite-x402-hono |
+| **Kite** | testnet chain 2368, x402 v2 "exact" (EIP-3009), real on-chain settlement in fUSD (our EIP-3009 test token) through a self-hosted facilitator; pieUSD + Pieverse path verified and one env change away; network constants from kite-x402-hono |
 | **Real world** | Twilio Voice, Cal.com API v2, Gmail SMTP — each with a local sandbox twin so the whole loop runs without accounts |
 
-> **Honest notes.** Payments target Kite testnet with test pieUSD. Until the wallets are funded the stack runs with
-> `PAYMENTS_MODE=sim`: a local facilitator that **really verifies** the EIP-712 signatures, amounts, payees and nonces,
-> but doesn't submit on-chain — those settlements carry a `sim:` id and are never shown as Kitescan links.
+> **Honest notes.** Payments settle **on Kite testnet** for real, but not in pieUSD: testnet pieUSD isn't on the public
+> faucet (it only gives KITE and a USDT without EIP-3009, which x402 "exact" can't use). So we deployed **fUSD**
+> ([`contracts/src/ForemanTestUSD.sol`](contracts/src/ForemanTestUSD.sol), same EIP-3009/EIP-712 shape as pieUSD and USDC)
+> and run our own x402 facilitator ([`services/facilitator`](services/facilitator/src/app.ts), same `/verify` + `/settle`
+> API as Pieverse) that submits each signed `transferWithAuthorization` and returns the real tx hash. With pieUSD in the
+> wallets, removing `KITE_TOKEN_ADDRESS` and pointing `FACILITATOR_URL` back at Pieverse is the whole switch.
+> Without any funded wallet, `PAYMENTS_MODE=sim` keeps a local facilitator that **really verifies** signatures, amounts,
+> payees and nonces but doesn't submit — those settlements carry a `sim:` id and are never shown as Kitescan links.
 > QuickDial is a **test worker scripted to lie** so we can show the oracle catching it.
 > Worker milestone payments are buyer-enforced, not trustless escrow (escrow is on the [roadmap](docs/15-roadmap-to-production.md)).
 > The console labels every adapter as live or sandbox, so nothing simulated passes as real.
@@ -136,7 +141,7 @@ per-customer consent records, DNC checks and per-country rules (TCPA for AI voic
 | SERV Reasoning | **live** (your `SERV_API_KEY`) | e2e and `serv-test` run against `inference-api.openserv.ai` |
 | Kite testnet RPC | **live** | `eth_chainId` → `0x940` (2368); pieUSD `name()`=`pieUSD`, `decimals()`=18 |
 | Pieverse facilitator | **live, payload + signature verified** | `/v2/supported` lists `exact/eip155:2368`; `bun run pay-test -- --verify`: our EIP-712 domain equals pieUSD's on-chain `DOMAIN_SEPARATOR`, a tampered signature is rejected (`invalid_exact_evm_payload_signature`), the valid one fails only on `insufficient_funds` (wallet not funded yet) |
-| x402 settlement | sim until wallets are funded | flip `PAYMENTS_MODE=live` after the faucet |
+| x402 settlement | **live on Kite testnet (fUSD)** | fUSD [`0xef5765044D85C6A27C66A6e322063E8A67bAB4bB`](https://testnet.kitescan.ai/address/0xef5765044D85C6A27C66A6e322063E8A67bAB4bB); first payment [`0xbf4f2bac…`](https://testnet.kitescan.ai/tx/0xbf4f2bac65d3fe70ccd37ff9684512d15e454efdd542a254969ee844faddfb11); full e2e: 16/16 payments settled on chain, ledger $2.98 / $12.00 / $9.02, on-chain balances match |
 | Twilio Voice | sandbox carrier | same REST client and signed webhooks; set `TWILIO_*` to go live |
 | Cal.com | sandbox calendar | same v2 client, versions pinned (`slots 2024-09-04`, `bookings 2024-08-13`); set `CALCOM_API_KEY` |
 | Email | sandbox inbox | set `SMTP_USER`/`SMTP_PASS` (Gmail app password) |
@@ -174,14 +179,20 @@ bun run pay-test -- --verify   # check our x402 payload against the live Pievers
 | proof-oracle | 4210 | x402 seller ($0.02 / verification), signed verdicts | `ORACLE_PAYTO`, signer `ORACLE_SIGNER_PK` |
 | business-payer | 4300 | the clinic's payment agent | `BUSINESS_PK` |
 | sandbox | 4400 | Twilio + Cal.com + inbox emulator | — |
+| facilitator | 4500 | x402 `/verify` + `/settle` on Kite testnet (only with fUSD) | — |
 | console | 5173 | React console, live + replay | — |
 
 x402 paywalls run in-process on each seller with per-route prices (docs/07 option B), so there are no wrapper ports.
 
 ### Going live
 
-1. **Kite**: fund `BUSINESS_ADDRESS` and `FOREMAN_ADDRESS` (printed by `bun run setup`) at https://faucet.gokite.ai with KITE + pieUSD,
-   run `bun run pay-test` (expect a Kitescan link), then set `PAYMENTS_MODE=live`.
+1. **Kite**: get KITE for `FOREMAN_ADDRESS` (printed by `bun run setup`) at https://faucet.gokite.ai, then
+   `bun scripts/deploy-token.ts` deploys fUSD, mints 50 to the business and 20 to Foreman, and gives the facilitator's gas
+   wallet 0.25 KITE. Set the three values it prints (`KITE_TOKEN_ADDRESS`, `PAYMENTS_MODE=live`,
+   `FACILITATOR_URL=http://localhost:4500`) and run `bun run pay-test` (expect a Kitescan link). `dev:all` and `e2e` start
+   the facilitator on :4500 automatically. A run costs about 0.03 KITE of gas.
+   *With pieUSD instead:* fund both wallets with pieUSD, delete `KITE_TOKEN_ADDRESS`, set
+   `FACILITATOR_URL=https://facilitator.pieverse.io/v2`.
 2. **Twilio** (trial is fine): set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`, an API key pair for the oracle,
    verify the numbers you'll call, enable the country in Voice Geo Permissions, and expose the workers with a tunnel
    (`cloudflared tunnel --url http://localhost:4110` → `CLEARCALL_PUBLIC_URL`). `bun run call-test +91…` rings your phone.
