@@ -27,7 +27,9 @@ export async function signPayment(pk: Hex, required: PaymentRequired, req: Payme
     from: account.address,
     to: req.payTo,
     value: req.amount,
-    validAfter: String(now - 5),
+    // x402 reference clients use now - 600: chain block time can lag the local clock, and EIP-3009 requires
+    // block.timestamp > validAfter (a few seconds of slack was refused on Kite testnet, 2026-11-14).
+    validAfter: String(now - 600),
     validBefore: String(now + (req.maxTimeoutSeconds ?? 300)),
     nonce: randomNonce(),
   };
