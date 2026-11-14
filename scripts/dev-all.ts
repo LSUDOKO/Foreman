@@ -55,7 +55,7 @@ if (import.meta.main) {
   process.on("SIGINT", stop);
   process.on("SIGTERM", stop);
   await waitHealthy(HEALTH_PORTS()).then(
-    () => console.log("\nall services healthy · console http://localhost:5173 · API http://localhost:4000\n"),
+    () => console.log("\nall services healthy · dashboard http://localhost:5173/app · API http://localhost:4000\n"),
     (e) => console.error(String(e)),
   );
 }
