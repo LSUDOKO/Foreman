@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --port 5173",
     "build": "tsc -b && vite build",
-    "build:replay": "VITE_REPLAY_ONLY=1 vite build",
+    "build:replay": "VITE_REPLAY_ONLY=1 vite build && mkdir -p dist/app && cp dist/index.html dist/app/index.html",
     "preview": "vite preview --port 4173"
   },
   "dependencies": {
