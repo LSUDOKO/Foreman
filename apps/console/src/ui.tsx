@@ -8,14 +8,14 @@ export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Bool
 
 export function Card({ title, aside, children, className, pad = true }: { title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string; pad?: boolean }) {
   return (
-    <section className={cx("rounded-lg border border-line bg-surface", className)}>
+    <section className={cx("overflow-hidden rounded-[22px] bg-surface shadow-[0_10px_30px_-24px_rgba(90,21,48,.45)]", className)}>
       {title && (
-        <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
-          <h2 className="text-[13px] font-medium text-ink">{title}</h2>
+        <header className="flex items-center justify-between gap-3 border-b border-dashed border-line px-5 py-3.5">
+          <h2 className="text-[15px] font-semibold tracking-tight text-ink" style={{ fontStretch: "108%" }}>{title}</h2>
           {aside && <div className="flex items-center gap-2 text-muted">{aside}</div>}
         </header>
       )}
-      <div className={pad ? "p-4" : ""}>{children}</div>
+      <div className={pad ? "p-5" : ""}>{children}</div>
     </section>
   );
 }
@@ -52,7 +52,7 @@ export function Button({ children, onClick, tone = "default", disabled, title, t
     in: "border-in/60 bg-in/15 text-in hover:bg-in/25",
   }[tone];
   return (
-    <button type={type} title={title} disabled={disabled} onClick={onClick} className={cx("inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40", t, className)}>
+    <button type={type} title={title} disabled={disabled} onClick={onClick} className={cx("inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40", t, className)}>
       {children}
     </button>
   );
