@@ -1,0 +1,46 @@
+name: Bug report
+description: Something in Foreman behaves differently from the docs
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problem (payments, signatures, webhook auth, the firewall)? Don't open a public issue. See SECURITY.md.
+        Never paste `.env` values, private keys, API tokens or real phone numbers.
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      placeholder: foreman / phone-worker / proof-oracle / business-payer / facilitator / mcp / console / contract
+    validations:
+      required: true
+  - type: dropdown
+    id: modes
+    attributes:
+      label: Payment mode
+      options: [sim (local facilitator), live Kite testnet (self-hosted facilitator), live Kite testnet (Pieverse), not sure]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Commands run, contract id, the refusal code or event shown in the console.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (redacted)
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: Commit / bun version
+      placeholder: "git rev-parse --short HEAD; bun --version"

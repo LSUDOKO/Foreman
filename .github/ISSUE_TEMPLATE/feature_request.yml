@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest a change to Foreman
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Who is affected and what they can't do today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+  - type: dropdown
+    id: money
+    attributes:
+      label: Does it change who gets paid, how much, or what counts as proof?
+      options: ["No", "Yes (explain the new trust assumption below)"]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Alternatives and notes

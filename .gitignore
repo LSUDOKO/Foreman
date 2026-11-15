@@ -10,3 +10,9 @@ dist/
 .playwright-mcp/
 *.tsbuildinfo
 recordings/
+video/film/node_modules/
+video/film/out/
+*.sqlite-shm
+*.sqlite-wal
+.mcp.json
+.dev.vars
