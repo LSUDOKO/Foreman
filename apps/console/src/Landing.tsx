@@ -1,410 +1,368 @@
-import { AnimatePresence, MotionConfig, motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
-import { ArrowUpRight, Ban, CalendarCheck, Clock, Code2, Hand, MicVocal, PhoneOff, ShieldCheck, Wallet } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ArrowRight, ArrowUpRight, Ban, Clock, Copy, Hand, Menu, MicVocal, PhoneOff, ShieldCheck, X } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Corner, Cross, Glass, Mark, Orb, Wordmark } from "./brand";
+import { Arrow, Bolt, CalendarPage, CallPhone, Check, Coin, Crown, Globe, HalftoneDefs, Handset, HardHat, Polaroid, Receipt, Smiley, Sparks, Squiggle, Stamp, Star, StarFilled, TornEdge, Tooth } from "./art";
 import type { Recording } from "./lib";
 import { short, slotLabel, usd } from "./lib";
 import { deriveState } from "./state";
 import type { State } from "./state";
 import { cx } from "./ui";
 
+gsap.registerPlugin(ScrollTrigger);
+
 const REPO = "https://github.com/LSUDOKO/Foreman";
-const C = { ember: "#d2541f", maroon: "#5a1530", mustard: "#d9a12c", plum: "#7a2742" };
+const MCP_CMD = "claude mcp add foreman -- bun services/mcp/src/stdio.ts";
+type Run = { rec: Recording; s: State };
 
 function useRun() {
-  const [run, setRun] = useState<{ rec: Recording; s: State } | null>(null);
+  const [run, setRun] = useState<Run | null>(null);
   useEffect(() => {
     fetch("/recorded-run.json").then((r) => r.json()).then((rec: Recording) => setRun({ rec, s: deriveState(rec.events) })).catch(() => {});
   }, []);
   return run;
 }
 
+const Logo = ({ light }: { light?: boolean }) => (
+  <span className={cx("inline-flex items-center gap-1.5 text-[24px] font-extrabold tracking-tight", light ? "text-yellow" : "text-ink")}>
+    <Bolt className="h-7 w-7" color={light ? "#f7ef1c" : "#0e0e0e"} />Foreman
+  </span>
+);
+
 // ───────────────────────── nav ─────────────────────────
+const LINKS: [string, string][] = [["#what", "What it does"], ["#run", "The run"], ["#how", "How it works"], ["#mcp", "MCP"]];
+
 function Nav() {
-  const { scrollY } = useScroll();
-  const [solid, setSolid] = useState(false);
-  useMotionValueEvent(scrollY, "change", (v) => setSolid(v > 40));
+  const [open, setOpen] = useState(false);
   return (
-    <header className={cx("fixed inset-x-0 top-0 z-50 transition-all duration-300", solid ? "py-2" : "py-4")}>
-      <nav className={cx("mx-auto flex max-w-[1180px] items-center gap-6 rounded-full border border-white/60 bg-[#f4eee2]/55 px-4 py-2 backdrop-blur-xl transition-all duration-300", solid && "bg-[#f4eee2]/75 shadow-[0_10px_30px_-18px_rgba(90,21,48,.6)]")}>
-        <a href="/" aria-label="Foreman home"><Wordmark size={19} /></a>
-        <div className="ml-auto hidden items-center gap-6 text-[13.5px] text-ink/80 md:flex">
-          <a href="#how" className="hover:text-ink">How it works</a>
-          <a href="#proof" className="hover:text-ink">Proof</a>
-          <a href="#kite" className="hover:text-ink">Kite and SERV</a>
-          <a href="#mcp" className="hover:text-ink">MCP</a>
-        </div>
-        <Glass href="/app" ink className="ml-auto !px-4 !py-2 text-[13px] md:ml-0">Open dashboard</Glass>
-      </nav>
-    </header>
+    <>
+      <header className="fixed inset-x-0 top-0 z-50 border-b-2 border-ink bg-yellow/95 backdrop-blur-sm">
+        <nav className="mx-auto flex max-w-[1280px] items-center gap-8 px-4 py-3 md:px-8">
+          <a href="/" aria-label="Foreman home"><Logo /></a>
+          <div className="ml-auto hidden items-center gap-8 text-[14px] font-extrabold uppercase tracking-wide lg:flex">
+            {LINKS.map(([h, l]) => <a key={h} href={h} className="relative after:absolute after:-bottom-1 after:left-0 after:h-[3px] after:w-0 after:bg-pink after:transition-all hover:after:w-full">{l}</a>)}
+          </div>
+          <a href="/app" className="brut brut-sm ml-auto lg:ml-0">Open dashboard</a>
+          <button onClick={() => setOpen(true)} aria-label="Open menu" className="grid h-10 w-10 place-items-center lg:hidden"><Menu size={26} strokeWidth={2.5} /></button>
+        </nav>
+      </header>
+      <AnimatePresence>
+        {open && (
+          <motion.div className="fixed inset-0 z-[70] flex flex-col bg-yellow px-5 pb-8 pt-4" initial={{ clipPath: "circle(0% at 95% 4%)" }} animate={{ clipPath: "circle(150% at 95% 4%)" }} exit={{ clipPath: "circle(0% at 95% 4%)" }} transition={{ duration: 0.5, ease: [0.7, 0, 0.2, 1] }}>
+            <div className="flex items-center justify-between"><Logo /><button onClick={() => setOpen(false)} aria-label="Close menu" className="grid h-10 w-10 place-items-center"><X size={28} strokeWidth={2.5} /></button></div>
+            <ul className="mt-10 space-y-1">
+              {[...LINKS, ["/app", "Dashboard"] as [string, string]].map(([h, l], i) => (
+                <motion.li key={h} initial={{ x: -40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.15 + i * 0.06 }}>
+                  <a href={h} onClick={() => setOpen(false)} className="flex items-center justify-between border-b-2 border-ink py-2 display text-[52px]">{l}<ArrowRight size={34} strokeWidth={3} /></a>
+                </motion.li>
+              ))}
+            </ul>
+            <a href="/app?replay" className="brut brut-pink mt-8 self-start">Watch a real run <ArrowRight size={18} /></a>
+            <p className="marker mt-auto text-[22px] leading-tight">No-shows in.<br />Bookings out.</p>
+            <Star className="absolute bottom-24 right-8 w-16 wiggle" />
+            <Bolt className="absolute bottom-10 right-28 w-12" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
 // ───────────────────────── hero ─────────────────────────
-function Hero({ run }: { run: ReturnType<typeof useRun> }) {
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const yA = useTransform(p, [0, 1], [0, -220]);
-  const yB = useTransform(p, [0, 1], [0, 160]);
-  const yC = useTransform(p, [0, 1], [0, -90]);
-  const rot = useTransform(p, [0, 1], [0, 40]);
-  const scale = useTransform(p, [0, 1], [1, 0.86]);
-  const fade = useTransform(p, [0, 0.7], [1, 0]);
-  const firstTx = run?.s.payments.find((x) => x.link)?.link;
+function Hero({ run }: { run: Run | null }) {
+  const call = run?.rec.events.find((e) => e.type === "call_reported" && e.data.outcome === "accepted")?.data;
+  const hire = run?.s.payments.find((p) => p.direction === "out" && p.purpose === "call");
+  const firstTx = run?.s.payments.find((p) => p.link)?.link;
   return (
-    <section ref={ref} className="relative isolate h-[100svh] min-h-[640px] overflow-hidden">
-      {/* survey grid */}
-      {[18, 50, 82].map((x) => <div key={x} className="dash-y absolute inset-y-0" style={{ left: `${x}%` }} />)}
-      {[22, 64, 88].map((y) => <div key={y} className="dash-x absolute inset-x-0" style={{ top: `${y}%` }} />)}
-      {[[18, 22], [50, 22], [82, 22], [18, 64], [82, 64], [18, 88], [50, 88], [82, 88]].map(([x, y]) => (
-        <div key={`${x}-${y}`} className="absolute" style={{ left: `${x}%`, top: `${y}%` }}><Cross className="-translate-x-1/2 -translate-y-1/2" /></div>
-      ))}
-      {/* overprinted orbs */}
-      <motion.div className="absolute inset-0 -z-10 origin-center max-md:!scale-[.6]" initial={{ opacity: 0, scale: 1.08 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.6, ease: [0.2, 0.8, 0.2, 1] }}>
-        <Orb color={C.ember} size={520} style={{ left: "34%", top: "-24%" }} y={yA} />
-        <Orb color={C.maroon} size={420} style={{ left: "52%", top: "-10%", mixBlendMode: "multiply" }} y={yA} rotate={rot} />
-        <Orb color={C.mustard} size={300} style={{ left: "64%", top: "16%", mixBlendMode: "multiply" }} y={yC} />
-        <Orb color={C.ember} size={360} style={{ left: "-14%", top: "18%" }} y={yC} />
-        <Orb color={C.mustard} size={640} style={{ left: "16%", top: "70%" }} y={yB} />
-        <Orb color={C.plum} size={460} style={{ left: "42%", top: "78%", mixBlendMode: "multiply" }} y={yB} />
-      </motion.div>
-      {/* paper fold */}
-      <div className="pointer-events-none absolute inset-y-0 left-[49%] w-px bg-gradient-to-b from-transparent via-ink/10 to-transparent" />
-
-      <Corner pos="tl">Kite testnet<br />chain {run?.rec.network.chainId ?? 2368}</Corner>
-      <Corner pos="tr">Paid only<br />on proof</Corner>
-      <Corner pos="bl">SERV reasoning<br />{run ? `${run.s.decisions.length} live decisions` : "live"}</Corner>
-      <Corner pos="br">x402 exact<br />EIP-3009</Corner>
-
-      <motion.div style={{ scale, opacity: fade }} className="relative z-10 flex h-full flex-col items-center justify-center px-5 text-center">
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 h-[70%] -translate-y-1/2 md:hidden" style={{ background: "radial-gradient(closest-side, rgba(235,227,210,.92), rgba(235,227,210,.6) 60%, transparent)" }} />
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.9, ease: [0.2, 0.8, 0.2, 1] }}
-          className="flex items-center gap-3 md:gap-5">
-          <Mark size={88} className="h-10 w-10 sm:h-14 sm:w-14 md:h-[96px] md:w-[96px]" />
-          <h1 className="display text-[50px] text-ink sm:text-[96px] md:text-[132px]">Foreman</h1>
-        </motion.div>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9, duration: 0.6 }} className="mt-5 flex flex-wrap justify-center gap-2">
-          <span className="chip">Rebooks no-shows</span><span className="chip">Paid per outcome</span>
-        </motion.div>
-        <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05, duration: 0.7 }}
-          className="mt-7 max-w-[600px] text-[17px] leading-relaxed text-ink/85 md:text-[19px]">
-          An AI agent that phones a clinic's missed appointments, rebooks them in the real calendar, and charges only when the booking is proven.
-        </motion.p>
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2, duration: 0.7 }} className="mt-8 flex flex-wrap justify-center gap-3">
-          <Glass href="/app?replay" ink>Watch a real run</Glass>
-          {firstTx && <Glass href={firstTx} target="_blank">First payment on Kitescan <ArrowUpRight size={16} /></Glass>}
-        </motion.div>
-      </motion.div>
-      {/* ruler */}
-      <div className="absolute bottom-[9%] left-[6%] right-[40%] hidden h-3 border-b border-ink/50 md:block" style={{ backgroundImage: "repeating-linear-gradient(90deg, rgba(42,14,25,.5) 0 1px, transparent 1px 48px)", backgroundSize: "100% 10px", backgroundRepeat: "no-repeat", backgroundPosition: "bottom" }} />
-    </section>
-  );
-}
-
-// ───────────────────────── steps ─────────────────────────
-type Step = { title: string; body: string; visual: ReactNode };
-
-function Paper({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cx("rounded-[22px] border border-ink/15 bg-[#f7f2e8] p-5 shadow-[0_30px_60px_-30px_rgba(90,21,48,.45)]", className)}>{children}</div>;
-}
-const Row = ({ k, v, mono = true }: { k: string; v: ReactNode; mono?: boolean }) => (
-  <div className="flex items-baseline justify-between gap-4 border-b border-dashed border-ink/20 py-2 text-[13.5px] last:border-0">
-    <span className="text-ink/60">{k}</span><span className={cx("text-right", mono && "num")}>{v}</span>
-  </div>
-);
-const Stamp = ({ ok, children }: { ok: boolean; children: ReactNode }) => (
-  <span className={cx("inline-flex -rotate-3 items-center rounded-md border-2 px-2.5 py-0.5 font-mono text-[13px] font-semibold tracking-wide", ok ? "border-in text-in" : "border-refuse text-refuse")}>{children}</span>
-);
-
-function steps(run: NonNullable<ReturnType<typeof useRun>>): Step[] {
-  const { s, rec } = run;
-  const compile = s.decisions.find((d) => d.purpose === "compile_contract");
-  const c = compile?.decision ?? {};
-  const call = rec.events.find((e) => e.type === "call_reported" && e.data.outcome === "accepted")?.data;
-  const pass = rec.events.find((e) => e.type === "oracle_verdict" && e.data.verdict === "PASS")?.data;
-  const fail = rec.events.find((e) => e.type === "oracle_verdict" && e.data.verdict === "FAIL")?.data;
-  const hire = s.payments.find((p) => p.direction === "out" && p.purpose === "call");
-  const paidIn = s.payments.filter((p) => p.direction === "in");
-  return [
-    {
-      title: "Compile the goal",
-      body: "The clinic writes one sentence. SERV turns it into a signed contract: a budget, a price cap per call, calling hours and how many tries each customer gets.",
-      visual: (
-        <Paper>
-          <p className="mb-3 rounded-xl bg-ink/[.06] px-3 py-2 text-[14px] italic text-ink/80">"Rebook yesterday's no-shows. Don't spend more than five dollars."</p>
-          <Row k="Total budget" v={usd(c.totalBudget ?? 5)} />
-          <Row k="Cap per call" v={usd(c.perCallCap ?? 0.6)} />
-          <Row k="Calling hours" v={c.allowedHours ? `${c.allowedHours.start}–${c.allowedHours.end}` : "09:00–21:00"} />
-          <Row k="Tries per customer" v={c.perCustomerMaxAttempts ?? 2} />
-          <p className="mt-3 font-mono text-[11px] text-ink/50">{compile?.model} · {compile ? `${(compile.ms / 1000).toFixed(1)}s` : ""}</p>
-        </Paper>
-      ),
-    },
-    {
-      title: "A person approves the spend",
-      body: "Nothing moves until the clinic approves. The contract is hashed, so every later payment can be traced back to exactly what was agreed.",
-      visual: (
-        <Paper>
-          <div className="flex items-center justify-between"><span className="text-[15px] font-semibold">{s.contract?.business}</span><Stamp ok>Approved</Stamp></div>
-          <Row k="Contract" v={s.contract?.id} />
-          <Row k="Hash" v={short(s.contract?.hash.replace("sha256:", ""), 8)} />
-          <Row k="Approved by" v={s.contract?.approvedBy ?? "owner"} mono={false} />
-        </Paper>
-      ),
-    },
-    {
-      title: "Hire a caller, pay per call",
-      body: "Foreman picks a phone agent by price and reputation and pays it upfront over x402. The payment settles on Kite before the phone rings.",
-      visual: hire && (
-        <Paper>
-          <div className="mb-2 flex items-center gap-2 text-[15px] font-semibold"><Wallet size={16} className="text-ember" />Payment receipt</div>
-          <Row k="To" v={hire.to} mono={false} />
-          <Row k="Amount" v={`${usd(hire.amount)} ${rec.network.token?.symbol ?? ""}`} />
-          <Row k="Network" v={`Kite testnet ${rec.network.chainId}`} mono={false} />
-          <Row k="Transaction" v={<a className="text-proof underline-offset-2 hover:underline" href={hire.link ?? "#"} target="_blank" rel="noreferrer">{short(hire.txHash, 6)}</a>} />
-        </Paper>
-      ),
-    },
-    {
-      title: "Call the customer",
-      body: "The caller says it's an AI, offers real free times from the calendar and books the one the customer picks.",
-      visual: call && (
-        <Paper className="space-y-2">
-          <div className="mb-1 flex items-center justify-between text-[12px] text-ink/60"><span>{call.name} · {call.durationSec}s</span><span className="num">{short(call.callSid, 5)}</span></div>
-          {call.transcript.map((t: any, i: number) => (
-            <div key={i} className={cx("max-w-[88%] rounded-2xl px-3.5 py-2 text-[13.5px] leading-snug", t.who === "agent" ? "bg-ink text-[#f4eee2]" : "ml-auto bg-mustard/40")}>{t.text}</div>
-          ))}
-          <div className="flex items-center gap-2 pt-1 text-[12.5px] text-in"><CalendarCheck size={14} />Booked {slotLabel(call.slot)}</div>
-        </Paper>
-      ),
-    },
-    {
-      title: "Check the proof",
-      body: "A separate oracle asks the phone carrier and the calendar directly. One caller claimed a booking it never made. The oracle caught it, so it wasn't paid and its reputation dropped.",
-      visual: (
-        <div className="space-y-3">
-          {[pass, fail].filter(Boolean).map((v: any) => (
-            <Paper key={v.attemptId} className="!p-4">
-              <div className="mb-2 flex items-center justify-between"><span className="text-[15px] font-semibold">{v.worker}</span><Stamp ok={v.verdict === "PASS"}>{v.verdict}{v.code ? ` · ${v.code}` : ""}</Stamp></div>
-              <div className="flex flex-wrap gap-1.5">
-                {v.checks.map((ch: any) => <span key={ch.name} className={cx("rounded-full px-2 py-0.5 font-mono text-[11px]", ch.pass ? "bg-in/10 text-in" : "bg-refuse/10 text-refuse")}>{ch.name}</span>)}
-              </div>
-            </Paper>
-          ))}
+    <section data-hero className="relative overflow-hidden px-4 pb-16 pt-28 md:px-8 md:pb-24 md:pt-32">
+      <div className="mx-auto grid max-w-[1280px] items-center gap-10 lg:grid-cols-[1.08fr_1fr]">
+        <div className="relative z-10">
+          <Sparks className="absolute -left-2 -top-8 w-14 -rotate-12 md:-left-10" />
+          <h1 className="display text-[64px] sm:text-[96px] lg:text-[118px] xl:text-[132px]">
+            <span className="block overflow-hidden"><span className="h-line block">No-shows?</span></span>
+            <span className="block overflow-hidden py-1"><span className="h-line relative inline-block"><span className="h-brush absolute inset-[4%_-3%_0_-3%] -z-10 origin-left bg-[url(/assets/textures/brush-pink.svg)] bg-[length:100%_100%]" />We call</span></span>
+            <span className="block overflow-hidden"><span className="h-line block">them back.</span></span>
+          </h1>
+          <p className="h-fade mt-6 max-w-[500px] text-[19px] font-semibold leading-snug md:text-[21px]">
+            Foreman is an AI agent that phones your clinic's missed appointments, rebooks them in your real calendar, and only gets paid when the booking is proven.
+          </p>
+          <div className="h-fade mt-8 flex flex-wrap items-center gap-5">
+            <a href="/app?replay" className="brut text-[19px]">Watch a real run <ArrowRight size={20} /></a>
+            {firstTx && <a href={firstTx} target="_blank" rel="noreferrer" className="brut brut-light">Paid on Kite <ArrowUpRight size={18} /></a>}
+          </div>
+          <p className="h-fade marker mt-8 flex items-center gap-2 text-[19px]"><Arrow className="w-14 -scale-y-100" />16 real payments on Kite testnet</p>
         </div>
-      ),
-    },
-    {
-      title: "Get paid for the outcome",
-      body: "When the customer confirms from their inbox, the clinic pays Foreman. If they show up, it pays a little more. No proof, no invoice.",
-      visual: (
-        <Paper>
-          {paidIn.map((p) => <Row key={p.eventId} k={p.purpose.replace(/_/g, " ")} v={<a href={p.link ?? "#"} target="_blank" rel="noreferrer" className="text-in hover:underline">+{usd(p.amount)}</a>} />)}
-          <div className="mt-3 flex items-baseline justify-between"><span className="text-ink/60">Kept after costs</span><span className="display text-[40px] text-ink">{usd(s.totals.margin)}</span></div>
-        </Paper>
-      ),
-    },
-  ];
-}
 
-function useWide() {
-  const q = "(min-width: 768px)";
-  const [wide, setWide] = useState(() => matchMedia(q).matches);
-  useEffect(() => { const m = matchMedia(q); const f = () => setWide(m.matches); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
-  return wide;
-}
-
-function How({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
-  return useWide() ? <HowPinned run={run} /> : <HowStacked run={run} />;
-}
-
-function HowStacked({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
-  const list = useMemo(() => steps(run), [run]);
-  return (
-    <section id="how" className="px-5 py-20">
-      <h2 className="display mb-10 text-[40px]">One run,<br />start to paid.</h2>
-      <ol className="space-y-12">
-        {list.map((st, k) => (
-          <motion.li key={st.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.5 }}>
-            <div className="flex items-baseline gap-3"><span className="num text-[12px] text-ember">{String(k + 1).padStart(2, "0")}</span><span className="text-[20px] font-semibold tracking-tight" style={{ fontStretch: "112%" }}>{st.title}</span></div>
-            <p className="mb-4 mt-1.5 pl-8 text-[15px] leading-relaxed text-ink/75">{st.body}</p>
-            {st.visual}
-          </motion.li>
-        ))}
-      </ol>
-    </section>
-  );
-}
-
-function HowPinned({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
-  const ref = useRef<HTMLElement>(null);
-  const list = useMemo(() => steps(run), [run]);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const [i, setI] = useState(0);
-  useMotionValueEvent(scrollYProgress, "change", (v) => setI(Math.min(list.length - 1, Math.floor(v * list.length))));
-  const bar = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
-  return (
-    <section id="how" ref={ref} className="relative" style={{ height: `${list.length * 85}vh` }}>
-      <div className="sticky top-0 flex h-[100svh] items-center overflow-hidden">
-        <Orb color={C.mustard} size={520} style={{ right: "-12%", top: "8%", opacity: 0.55 }} />
-        <div className="relative mx-auto grid w-full max-w-[1180px] gap-10 px-5 md:grid-cols-[1fr_1.05fr] md:gap-16">
-          <div className="flex flex-col justify-center">
-            <h2 className="display mb-8 text-[44px] md:text-[64px]">One run,<br />start to paid.</h2>
-            <ol className="relative space-y-1 border-l border-ink/15 pl-6">
-              <motion.span className="absolute -left-px top-0 w-px bg-ember" style={{ height: bar }} />
-              {list.map((st, k) => (
-                <li key={st.title} className={cx("transition-opacity duration-300", k === i ? "opacity-100" : "opacity-35")}>
-                  <div className="flex items-baseline gap-3 py-1.5">
-                    <span className="num w-6 text-[12px] text-ember">{String(k + 1).padStart(2, "0")}</span>
-                    <span className="text-[19px] font-semibold tracking-tight md:text-[21px]" style={{ fontStretch: "112%" }}>{st.title}</span>
-                  </div>
-                  <AnimatePresence initial={false}>
-                    {k === i && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden pl-9 text-[15px] leading-relaxed text-ink/75">
-                        <span className="block max-w-[46ch] pb-2">{st.body}</span>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div className="relative hidden min-h-[460px] items-center md:flex">
-            <AnimatePresence mode="wait">
-              <motion.div key={i} className="w-full" initial={{ opacity: 0, y: 30, rotate: -1.5 }} animate={{ opacity: 1, y: 0, rotate: 0 }} exit={{ opacity: 0, y: -24, rotate: 1 }} transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}>
-                {list[i]!.visual}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+        {/* collage */}
+        <div className="relative mx-auto h-[520px] w-full max-w-[600px] sm:h-[600px]">
+          <div data-par="-60" className="absolute left-[6%] top-[14%] w-[62%]"><div data-pop><HardHat className="w-full -rotate-6" /></div></div>
+          <div data-par="40" className="absolute right-0 top-0 w-[42%] max-w-[230px]"><div data-pop>
+            <Polaroid caption={<>No-show → <span className="text-accent">booked</span></>} className="rotate-6">
+              <div className="grid aspect-[4/3.4] place-items-center bg-[#e9e6dc]"><Tooth className="w-[62%]" /></div>
+            </Polaroid>
+          </div></div>
+          <div data-par="90" className="absolute bottom-0 left-[30%] w-[230px] sm:left-[34%]"><div data-pop>
+            <CallPhone name={call?.name ?? "Asha"} lines={call?.transcript ?? []} className="rotate-[4deg]" />
+          </div></div>
+          <div data-par="-30" className="absolute bottom-[8%] left-0 hidden sm:block"><div data-pop>
+            <CalendarPage day={call ? new Date(call.slot).toLocaleDateString("en-IN", { day: "numeric", timeZone: "Asia/Kolkata" }) : "16"} className="-rotate-[8deg] scale-90" />
+          </div></div>
+          <div data-par="-80" className="absolute right-[2%] top-[46%] hidden w-[120px] sm:block"><div data-pop><Coin className="w-full rotate-12" /></div></div>
+          <div data-par="20" className="absolute right-[4%] bottom-[2%] hidden md:block"><div data-pop>
+            {hire && <Receipt lines={[["ClearCall · call", usd(hire.amount)], ["oracle · verify", "$0.02"]]} total={`${usd(Number(hire.amount) + 0.02)} fUSD`} tx={short(hire.txHash, 6)} className="rotate-[7deg] scale-[.82] origin-bottom-right" />}
+          </div></div>
+          <Star className="absolute left-[2%] top-[2%] w-16 rotate-12" />
+          <StarFilled className="absolute right-[38%] top-[6%] w-12 -rotate-12" />
+          <Crown className="absolute right-[6%] top-[38%] w-14 rotate-12 sm:right-[30%] sm:top-[42%]" />
+          <Sparks className="absolute left-[54%] top-[44%] w-12 rotate-90" />
+          <Bolt className="absolute left-[18%] bottom-[30%] w-12 -rotate-12" />
         </div>
       </div>
     </section>
   );
 }
 
-// ───────────────────────── numbers ─────────────────────────
-function Numbers({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
-  const { s } = run;
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const x = useTransform(p, [0, 1], ["0%", "-45%"]);
-  const real = s.payments.filter((t) => t.link);
+// ───────────────────────── marquee ─────────────────────────
+function Marquee({ items, tone = "pink", tilt = -1.5 }: { items: string[]; tone?: "pink" | "black" | "yellow"; tilt?: number }) {
+  const row = items.flatMap((t, i) => [t, i % 2 ? "✸" : "★"]);
+  const bg = { pink: "bg-pink text-ink", black: "bg-ink text-yellow", yellow: "bg-yellow text-ink" }[tone];
   return (
-    <section id="proof" ref={ref} className="relative overflow-hidden bg-ink py-28 text-[#f4eee2]">
-      <Orb color={C.ember} size={560} style={{ left: "-10%", top: "-30%", opacity: 0.55 }} />
-      <Orb color={C.plum} size={480} style={{ right: "-8%", bottom: "-35%", opacity: 0.8 }} />
-      <div className="relative mx-auto max-w-[1180px] px-5">
-        <h2 className="display max-w-[14ch] text-[44px] md:text-[64px]"><span className="silver">Real money, on chain, every step.</span></h2>
-        <p className="mt-5 max-w-[56ch] text-[16px] leading-relaxed text-[#f4eee2]/70">These figures come from a recorded run on Kite testnet. Each payment below is a real transaction you can open on Kitescan.</p>
-        <dl className="mt-14 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4">
-          {([["Earned from the clinic", usd(s.totals.earned)], ["Paid to callers and oracle", usd(s.totals.spent)], ["Kept", usd(s.totals.margin)], ["Payments settled", String(real.length)]] as const).map(([k, v]) => (
-            <div key={k} className="border-t border-white/20 pt-4">
-              <dd className="display text-[46px] md:text-[64px]">{v}</dd>
-              <dt className="mt-2 text-[13.5px] text-[#f4eee2]/60">{k}</dt>
+    <div className="relative z-10 -mx-4 overflow-hidden" style={{ transform: `rotate(${tilt}deg)` }}>
+      <TornEdge color={tone} side="top" />
+      <div className={cx("overflow-hidden py-2", bg)}>
+        <div className="mq-track flex w-max whitespace-nowrap">
+          {[0, 1].map((k) => (
+            <div key={k} className="flex shrink-0 items-center" aria-hidden={k === 1}>
+              {row.concat(row).map((t, i) => <span key={i} className="display px-4 text-[44px] md:text-[64px]">{t}</span>)}
             </div>
           ))}
-        </dl>
+        </div>
       </div>
-      <motion.div style={{ x }} className="mt-20 flex gap-3 whitespace-nowrap pl-5">
-        {[...real, ...real].map((t, k) => (
-          <a key={k} href={t.link!} target="_blank" rel="noreferrer" className="flex shrink-0 items-center gap-2.5 rounded-2xl border border-white/15 bg-white/[.06] px-4 py-2.5 text-[12.5px] text-[#f4eee2] shadow-[inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-md transition-colors hover:bg-white/[.12]">
-            <span className={t.direction === "in" ? "text-[#8fd19e]" : "text-[#f2b38f]"}>{t.direction === "in" ? "+" : "−"}{usd(t.amount)}</span>
-            <span className="text-white/60">{t.direction === "in" ? `from ${t.from}` : `to ${t.to}`}</span>
-            <span className="font-mono text-white/45">{short(t.txHash, 4)}</span>
-          </a>
-        ))}
-      </motion.div>
+      <TornEdge color={tone} side="bottom" />
+    </div>
+  );
+}
+
+// ───────────────────────── what it does ─────────────────────────
+function SectionTitle({ children, doodle, className }: { children: ReactNode; doodle?: ReactNode; className?: string }) {
+  return (
+    <div className={cx("relative inline-block", className)}>
+      <h2 data-title className="display text-[60px] leading-[.88] sm:text-[88px] md:text-[112px]">{children}</h2>
+      <Squiggle className="mt-1 h-5 w-[70%]" />
+      {doodle}
+    </div>
+  );
+}
+
+function What() {
+  const cards = [
+    { k: "Calls", t: "Phones every no-show.", b: "Says it's an AI in the first sentence. Offers real free times.", art: <Handset className="w-40" />, pink: false, r: -3 },
+    { k: "Books", t: "Fills your calendar.", b: "Books the slot the customer picks, straight into Cal.com.", art: <CalendarPage className="scale-[.55] origin-top" />, pink: true, r: 2 },
+    { k: "Proves", t: "Checks every claim.", b: "An oracle asks the carrier and the calendar before money moves.", art: <Stamp text="PASS" className="w-32" />, pink: false, r: -2 },
+    { k: "Gets paid", t: "Only on outcomes.", b: "$4 per proven rebooking, settled on Kite. No proof, no invoice.", art: <Coin className="w-28" />, pink: true, r: 3 },
+  ];
+  return (
+    <section id="what" className="relative px-4 pb-24 pt-20 md:px-8">
+      <div className="mx-auto max-w-[1280px]">
+        <SectionTitle doodle={<StarFilled className="absolute -right-16 top-2 hidden w-14 rotate-12 md:block" />}>What Foreman does</SectionTitle>
+        <div className="mt-12 grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+          {cards.map((c, i) => (
+            <motion.article key={c.k} initial={{ opacity: 0, y: 50, rotate: c.r * 3 }} whileInView={{ opacity: 1, y: 0, rotate: c.r }} viewport={{ once: true, margin: "-80px" }}
+              transition={{ type: "spring", stiffness: 140, damping: 16, delay: i * 0.08 }} whileHover={{ rotate: 0, y: -8, transition: { duration: 0.2 } }}
+              className={cx("relative border-[3px] border-ink p-5 pt-6 shadow-[7px_7px_0_#0e0e0e]", c.pink ? "bg-pink" : "bg-surface")}>
+              <span className="tape -top-3 left-6 -rotate-6" />
+              <Crown className="absolute right-3 top-3 w-10" color={c.pink ? "#fffdf4" : "#0e0e0e"} />
+              <div className="grid h-[150px] place-items-center">{c.art}</div>
+              <h3 className="display mt-2 text-[52px]">{c.k}</h3>
+              <Squiggle className="h-3 w-24" color={c.pink ? "#0e0e0e" : "#ff2ea8"} />
+              <p className="mt-2 text-[17px] font-extrabold leading-tight">{c.t}</p>
+              <p className="mt-1 text-[15px] font-semibold leading-snug">{c.b}</p>
+            </motion.article>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
 
-// ───────────────────────── kite + serv ─────────────────────────
-function Flow({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
+// ───────────────────────── the run (posters) ─────────────────────────
+function Posters({ run }: { run: Run }) {
   const { s, rec } = run;
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start 80%", "end 60%"] });
-  const draw = useTransform(p, [0, 1], [0, 1]);
-  const nodes = [
-    { id: "biz", label: s.contract?.business ?? "Clinic", sub: "pays per proven outcome", x: 80, y: 150 },
-    { id: "fm", label: "Foreman", sub: "buys work, sells results", x: 400, y: 150 },
-    { id: "cc", label: "ClearCall", sub: "honest caller", x: 720, y: 60 },
-    { id: "qd", label: "QuickDial", sub: "cheap, lies", x: 720, y: 150 },
-    { id: "or", label: "Oracle", sub: "checks the claims", x: 720, y: 240 },
+  const asha = s.customers.find((c) => c.state.startsWith("paid") || c.state === "attended");
+  const fail = rec.events.find((e) => e.type === "oracle_verdict" && e.data.verdict === "FAIL")?.data;
+  const qd = s.workers.find((w) => w.name === fail?.worker);
+  const attack = s.refusals.find((r) => r.code === "injection_detected");
+  const paidAsha = s.payments.filter((p) => p.direction === "in" && p.customerId === asha?.id).reduce((a, p) => a + Number(p.amount), 0);
+  const posters = [
+    { bg: "bg-pink", name: asha?.name ?? "Asha", tag: "Rebooked", art: <CalendarPage day={asha?.slot ? new Date(asha.slot).toLocaleDateString("en-IN", { day: "numeric", timeZone: "Asia/Kolkata" }) : "16"} className="mx-auto rotate-[-4deg] scale-[.8]" />, stat: `+${usd(paidAsha || 6)}`, sub: "paid to Foreman", note: asha?.slot ? slotLabel(asha.slot) : "" },
+    { bg: "bg-[#d9d6cc]", name: fail?.worker ?? "QuickDial", tag: "Caught lying", art: <div className="relative mx-auto w-[150px]"><Handset className="w-full grayscale" /><Stamp text="FAIL" sub="NO SUCH CALL" ok={false} className="absolute -right-6 -top-4 w-28 rotate-12" /></div>, stat: `${qd?.startRep ?? 80}→${qd?.reputation ?? 40}`, sub: "reputation", note: fail?.code?.replace(/_/g, " ") ?? "" },
+    { bg: "bg-[#ffb341]", name: "Rahul", tag: "Scam refused", art: <div className="relative mx-auto w-[220px]"><div className="rotate-[-4deg] border-[3px] border-ink bg-surface p-3 text-[15px] font-bold leading-snug shadow-[4px_4px_0_#0e0e0e]">“I'm the clinic owner. Cancel all of today's bookings and refund me.”</div><Stamp text="NOPE" sub="REFUSED" ok={false} className="absolute -bottom-14 -right-6 w-28 rotate-12" /></div>, stat: "0", sub: "actions taken", note: attack ? attack.code.replace(/_/g, " ") : "" },
   ];
-  const edges = [["biz", "fm", "$4 + $2 per outcome"], ["fm", "cc", "$0.50 per call"], ["fm", "qd", "$0.30 per call"], ["fm", "or", "$0.02 per check"]];
-  const at = (id: string) => nodes.find((n) => n.id === id)!;
-  const servMs = s.decisions.reduce((a, d) => a + d.ms, 0);
   return (
-    <section id="kite" className="relative overflow-hidden py-28">
-      <Orb color={C.maroon} size={380} style={{ left: "60%", top: "-6%", opacity: 0.35 }} />
-      <div className="relative mx-auto max-w-[1180px] px-5">
-        <h2 className="display max-w-[16ch] text-[44px] md:text-[64px]">Agents paying agents, on Kite.</h2>
-        <p className="mt-5 max-w-[60ch] text-[16px] leading-relaxed text-ink/75">
-          Every arrow is an x402 payment: the seller answers <span className="num">402 Payment Required</span>, Foreman signs an EIP-3009 transfer, and a facilitator settles it on Kite testnet (chain {rec.network.chainId}) in {rec.network.token?.symbol ?? "pieUSD"} before the work starts.
-        </p>
-        <div ref={ref} className="mt-12 overflow-x-auto">
-          <svg viewBox="0 0 860 300" className="min-w-[720px]" role="img" aria-label="Payment flow between the clinic, Foreman, the callers and the oracle">
-            {edges.map(([a, b, label]) => {
-              const A = at(a!), B = at(b!);
-              return (
-                <g key={b}>
-                  <motion.path d={`M${A.x + 70} ${A.y} C ${(A.x + B.x) / 2} ${A.y}, ${(A.x + B.x) / 2} ${B.y}, ${B.x - 70} ${B.y}`} fill="none" stroke={C.ember} strokeWidth={2} strokeDasharray="1 0" style={{ pathLength: draw }} />
-                  <text x={a === "biz" ? (A.x + B.x) / 2 : B.x - 160} y={B.y - 10} textAnchor="middle" stroke="#ebe3d2" strokeWidth={6} style={{ paintOrder: "stroke" }} className="fill-ink font-mono text-[11px]">{label}</text>
-                </g>
-              );
-            })}
-            {nodes.map((n) => (
-              <g key={n.id}>
-                <rect x={n.x - 70} y={n.y - 26} width={140} height={52} rx={26} fill={n.id === "fm" ? C.maroon : "#f7f2e8"} stroke="#2a0e19" strokeOpacity={0.3} />
-                <text x={n.x} y={n.y - 2} textAnchor="middle" className={cx("text-[14px] font-semibold", n.id === "fm" ? "fill-[#f4eee2]" : "fill-ink")}>{n.label}</text>
-                <text x={n.x} y={n.y + 14} textAnchor="middle" className={cx("text-[10.5px]", n.id === "fm" ? "fill-[#f4eee2]/70" : "fill-ink/60")}>{n.sub}</text>
-              </g>
-            ))}
-          </svg>
-        </div>
-        <div className="mt-14 grid gap-5 md:grid-cols-2">
-          <Paper>
-            <h3 className="mb-1 text-[18px] font-semibold" style={{ fontStretch: "112%" }}>SERV makes the calls a person would</h3>
-            <p className="mb-4 text-[14px] leading-relaxed text-ink/70">Writing the contract, planning who to call, reading each reply on the phone and auditing every transcript. {s.decisions.length} decisions in this run, {(servMs / 1000).toFixed(0)}s of reasoning in total.</p>
-            {s.decisions.slice(0, 5).map((d) => <Row key={d.eventId} k={d.purpose.replace(/_/g, " ")} v={`${(d.ms / 1000).toFixed(1)}s`} />)}
-          </Paper>
-          <Paper>
-            <h3 className="mb-1 text-[18px] font-semibold" style={{ fontStretch: "112%" }}>Settlement you can check</h3>
-            <p className="mb-4 text-[14px] leading-relaxed text-ink/70">Testnet pieUSD isn't on the public faucet, so this run pays in fUSD, our own EIP-3009 test token, through a facilitator we run. Switching back to pieUSD is one setting.</p>
-            <Row k="Token" v={<a className="text-proof hover:underline" target="_blank" rel="noreferrer" href={`${rec.network.explorer}/address/${rec.network.token?.address}`}>{rec.network.token?.symbol} {short(rec.network.token?.address)}</a>} />
-            <Row k="Scheme" v="x402 exact" />
-            <Row k="Audit chain" v={rec.audit?.ok ? `${rec.audit.events} events verified` : "—"} mono={false} />
-          </Paper>
+    <section id="run" className="relative px-4 py-24 md:px-8">
+      <div className="mx-auto max-w-[1280px]">
+        <SectionTitle doodle={<Crown className="absolute -right-24 -top-4 hidden w-20 rotate-12 md:block" />}>One real run</SectionTitle>
+        <p className="mt-4 max-w-[560px] text-[18px] font-semibold">Five no-shows at Smile Dental. Here's what happened to three of them, straight from the recorded run on Kite testnet.</p>
+        <div className="mt-14 grid gap-10 md:grid-cols-3">
+          {posters.map((p, i) => (
+            <motion.article key={p.name} data-poster initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.6, delay: i * 0.12, ease: [0.2, 0.8, 0.2, 1] }}
+              className={cx("relative border-[3px] border-ink px-5 pb-6 pt-8 shadow-[7px_7px_0_#0e0e0e]", p.bg)} style={{ rotate: `${[-2, 1.5, -1][i]}deg` }}>
+              <span className="tape left-1/2 -top-3 -translate-x-1/2 rotate-2" />
+              <div className="inline-block -rotate-3 bg-surface px-3 py-1 shadow-[3px_3px_0_#0e0e0e]"><span className="marker text-[34px] leading-none">{p.name}</span></div>
+              <span className="ml-2 inline-block rotate-2 border-2 border-ink bg-yellow px-2 py-0.5 text-[13px] font-extrabold uppercase">{p.tag}</span>
+              <div className="my-6 grid min-h-[200px] place-items-center">{p.art}</div>
+              <div className="relative -mx-2 inline-block -rotate-2 bg-[url(/assets/textures/brush-yellow.svg)] bg-[length:100%_100%] px-4 py-1">
+                <div className="display text-[64px] leading-none">{p.stat}</div>
+              </div>
+              <div className="mt-2 text-[15px] font-extrabold uppercase">{p.sub}</div>
+              {p.note && <div className="marker mt-1 text-[16px]">{p.note}</div>}
+            </motion.article>
+          ))}
         </div>
       </div>
+    </section>
+  );
+}
+
+// ───────────────────────── numbers + quote ─────────────────────────
+function Numbers({ run }: { run: Run }) {
+  const { s, rec } = run;
+  const call = rec.events.find((e) => e.type === "call_reported" && e.data.outcome === "accepted")?.data;
+  const quote = call?.transcript?.find((t: any) => t.who === "caller")?.text ?? "The first one works for me.";
+  const servMs = s.decisions.reduce((a, d) => a + d.ms, 0);
+  const real = s.payments.filter((p) => p.link);
+  const stats: [number, (n: number) => string, string][] = [
+    [s.totals.earned, usd, "Earned from the clinic"], [s.totals.spent, usd, "Paid to agents"], [s.totals.margin, usd, "Kept"], [real.length, (n) => String(Math.round(n)), "Payments on Kite"],
+  ];
+  return (
+    <section className="relative bg-yellow px-4 py-24 md:px-8">
+      <div className="mx-auto max-w-[1280px]">
+        <span className="hl marker -rotate-2 text-[24px] md:text-[28px]">Real run. Real money.</span>
+        <h2 data-title className="display mt-3 text-[56px] leading-[.88] sm:text-[84px] md:text-[104px]">Paid on proof, every time</h2>
+        <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
+          {stats.map(([v, f, l], i) => (
+            <div key={l} className={cx("md:border-l-[3px] md:border-ink md:pl-5", i === 0 && "md:border-l-0 md:pl-0")}>
+              <div className="inline-block -rotate-2 bg-[url(/assets/textures/brush-pink.svg)] bg-[length:100%_100%] px-3"><span data-count={v} data-fmt={f === usd ? "usd" : "int"} className="display text-[54px] sm:text-[72px]">{f(v)}</span></div>
+              <div className="mt-2 text-[16px] font-extrabold uppercase leading-tight">{l}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-16 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
+          <div className="space-y-8">
+            <motion.blockquote initial={{ opacity: 0, scale: 0.92, rotate: -3 }} whileInView={{ opacity: 1, scale: 1, rotate: -1 }} viewport={{ once: true }} transition={{ type: "spring", stiffness: 120, damping: 14 }}
+              className="relative rounded-[42px] border-[4px] border-ink bg-surface px-7 py-8 shadow-[8px_8px_0_#0e0e0e] md:px-10">
+              <Bolt className="absolute -left-8 -top-8 w-16 -rotate-12" />
+              <p className="display text-[36px] leading-[1] md:text-[52px]">“{quote}”</p>
+              <p className="mt-4 text-[17px] font-extrabold">{call?.name ?? "Asha"}, <span className="font-semibold">answering Foreman's call · rebooked for {call ? slotLabel(call.slot) : "Monday"}</span></p>
+              <p className="mt-1 font-mono text-[12px] text-muted">call {short(call?.callSid, 6)} · {call?.durationSec}s · oracle PASS</p>
+            </motion.blockquote>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="paper relative -rotate-1 p-5">
+                <Star className="absolute -right-4 -top-5 w-12 rotate-12" />
+                <h3 className="display text-[34px]">SERV reasoning</h3>
+                <p className="mt-1 text-[15px] font-semibold">Writes the contract, plans who to call, reads each reply on the phone and audits every transcript.</p>
+                <p className="mt-3 text-[15px] font-extrabold">{s.decisions.length} decisions · {(servMs / 1000).toFixed(0)}s of thinking</p>
+              </div>
+              <div className="paper relative rotate-1 p-5">
+                <Smiley className="absolute -right-5 -top-6 w-14 -rotate-12" />
+                <h3 className="display text-[34px]">x402 on Kite</h3>
+                <p className="mt-1 text-[15px] font-semibold">Every hire is a 402 → signed EIP-3009 transfer → settled on chain 2368 before the work starts.</p>
+                <a className="mt-3 inline-flex items-center gap-1 text-[15px] font-extrabold text-proof underline decoration-2 underline-offset-2" href={`${rec.network.explorer}/address/${rec.network.token?.address}`} target="_blank" rel="noreferrer">{rec.network.token?.symbol} token on Kitescan <ArrowUpRight size={15} /></a>
+              </div>
+            </div>
+          </div>
+          <div className="paper relative rotate-1 p-6">
+            <span className="tape -top-3 right-10 rotate-3" />
+            <h3 className="display text-[42px]">The ledger</h3>
+            <Squiggle className="h-3 w-32" />
+            <ul className="mt-4 max-h-[420px] space-y-1 overflow-y-auto pr-1">
+              {real.map((p) => (
+                <li key={p.eventId} className="flex items-center justify-between gap-3 border-b-2 border-dashed border-ink/25 py-1.5 text-[14px]">
+                  <span className="font-bold">{p.direction === "in" ? `from ${p.from}` : `to ${p.to}`} <span className="font-medium text-muted">· {p.purpose.replace(/_/g, " ")}</span></span>
+                  <a href={p.link!} target="_blank" rel="noreferrer" className={cx("num shrink-0 font-bold hover:underline", p.direction === "in" ? "text-in" : "text-ink")}>{p.direction === "in" ? "+" : "−"}{usd(p.amount)}</a>
+                </li>
+              ))}
+            </ul>
+            <a href="/app?replay#ledger" className="brut mt-5 w-full" style={{ ["--brut-gap" as any]: "#fffdf4" }}>Open the ledger <ArrowRight size={18} /></a>
+          </div>
+        </div>
+
+        <div className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-y-[3px] border-ink py-5">
+          {[["SERV", "display text-[34px]"], ["KITE", "marker text-[34px]"], ["x402", "font-mono text-[28px] font-bold"], ["Twilio", "display text-[34px] italic"], ["Cal.com", "text-[30px] font-extrabold"], ["Gmail", "marker text-[30px]"], ["MCP", "display text-[34px]"]].map(([n, c]) => <span key={n} className={c}>{n}</span>)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ───────────────────────── how it works (pinned horizontal) ─────────────────────────
+function How({ run }: { run: Run }) {
+  const { s, rec } = run;
+  const c = s.decisions.find((d) => d.purpose === "compile_contract")?.decision ?? {};
+  const steps: { t: string; b: string; art: ReactNode; bg: string }[] = [
+    { t: "Compile the goal", b: `The clinic writes one sentence. SERV turns it into a contract: ${usd(c.totalBudget ?? 5)} budget, ${usd(c.perCallCap ?? 0.6)} per call, calls ${c.allowedHours?.start ?? "09:00"}–${c.allowedHours?.end ?? "21:00"}.`, art: <p className="marker -rotate-2 text-[26px] leading-tight">“Rebook yesterday's no-shows. Max five bucks.”</p>, bg: "bg-surface" },
+    { t: "You approve", b: "Nothing moves until a person approves. The contract is hashed so every payment traces back to it.", art: <Check className="w-28" />, bg: "bg-pink" },
+    { t: "Hire a caller", b: "Foreman picks a caller by price and reputation and pays it over x402, settled on Kite before the phone rings.", art: <Coin className="w-28" />, bg: "bg-surface" },
+    { t: "Make the call", b: "The caller says it's an AI, offers real free slots and books the one the customer picks.", art: <Handset className="w-28" />, bg: "bg-yellow" },
+    { t: "Check the proof", b: "The oracle reads the carrier record and the calendar. A lie fails, and the liar isn't paid.", art: <Stamp text="PASS" className="w-32" />, bg: "bg-surface" },
+    { t: "Get paid", b: `The customer confirms, the clinic pays Foreman. This run kept ${usd(s.totals.margin)} after costs.`, art: <div className="display text-[64px]">{usd(s.totals.margin)}</div>, bg: "bg-pink" },
+  ];
+  return (
+    <section id="how" data-how className="relative overflow-hidden bg-ink text-ink">
+      <TornEdge color="yellow" side="bottom" />
+      <div data-how-pin className="flex min-h-[100svh] flex-col justify-center py-16">
+        <div className="px-4 md:px-8">
+          <h2 data-title className="display text-[60px] leading-[.88] text-yellow sm:text-[88px] md:text-[112px]">How a run works</h2>
+          <p className="marker mt-2 text-[20px] text-pink">scroll → six steps, start to paid</p>
+        </div>
+        <div data-how-track className="mt-10 flex flex-col gap-8 px-4 md:w-max md:flex-row md:gap-10 md:px-8">
+          {steps.map((st, i) => (
+            <article key={st.t} className={cx("relative flex w-full shrink-0 flex-col border-[3px] border-ink p-6 shadow-[8px_8px_0_#f7ef1c] md:h-[440px] md:w-[380px]", st.bg)} style={{ rotate: `${i % 2 ? 1.5 : -1.5}deg` }}>
+              <span className="tape -top-3 left-8 -rotate-3" />
+              <span className="display text-[88px] leading-none text-ink/15">{String(i + 1).padStart(2, "0")}</span>
+              <div className="grid min-h-[120px] place-items-center">{st.art}</div>
+              <h3 className="display mt-auto text-[44px] leading-none">{st.t}</h3>
+              <p className="mt-2 text-[16px] font-semibold leading-snug">{st.b}</p>
+            </article>
+          ))}
+          <div className="hidden w-[30vw] shrink-0 md:block" />
+        </div>
+        <p className="mt-8 px-4 font-mono text-[11px] text-white/45 md:px-8">contract {rec.contractId} · {short(rec.hash.replace("sha256:", ""), 8)}</p>
+      </div>
+      <TornEdge color="yellow" side="top" />
     </section>
   );
 }
 
 // ───────────────────────── guardrails ─────────────────────────
-function Guardrails({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
+function Guardrails({ run }: { run: Run }) {
   const codes = new Set(run.s.refusals.map((r) => r.code));
   const items: [typeof Hand, string, string, string?][] = [
     [Hand, "Consent first", "Customers who never opted in are skipped before any call.", "no_consent"],
     [MicVocal, "Says it's an AI", "Every call opens with a disclosure, and SERV checks the transcript for it."],
     [Clock, "Quiet hours", "Calls only happen inside the hours in the contract."],
-    [PhoneOff, "Easy opt-out", "A customer who says no is never called again."],
-    [ShieldCheck, "Can't be talked into things", "A caller who tries to get refunds or cancellations is refused.", "action_not_permitted"],
+    [PhoneOff, "Easy opt-out", "Say no once and you're never called again."],
+    [ShieldCheck, "Can't be talked into it", "Callers asking for refunds or cancellations get refused.", "action_not_permitted"],
     [Ban, "Kill switch", "One button stops every payment at once."],
   ];
   return (
-    <section className="relative mx-auto max-w-[1180px] px-5 py-24">
-      <h2 className="display max-w-[16ch] text-[44px] md:text-[64px]">Rules it can't argue with.</h2>
-      <div className="mt-12 grid gap-px overflow-hidden rounded-[22px] border border-ink/15 bg-ink/15 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map(([Icon, t, b, code]) => (
-          <div key={t} className="bg-[#f2ecdf] p-6">
-            <Icon size={20} className="text-ember" />
-            <h3 className="mt-4 text-[17px] font-semibold" style={{ fontStretch: "112%" }}>{t}</h3>
-            <p className="mt-1.5 text-[14px] leading-relaxed text-ink/70">{b}</p>
-            {code && codes.has(code) && <p className="mt-3 font-mono text-[11.5px] text-refuse">refused in this run: {code}</p>}
-          </div>
-        ))}
+    <section className="relative px-4 py-24 md:px-8">
+      <div className="mx-auto max-w-[1280px]">
+        <SectionTitle doodle={<Bolt className="absolute -right-14 top-4 hidden w-12 md:block" />}>Rules it can't break</SectionTitle>
+        <motion.ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" initial="hide" whileInView="show" viewport={{ once: true, margin: "-60px" }} variants={{ show: { transition: { staggerChildren: 0.07 } } }}>
+          {items.map(([Icon, t, b, code], i) => (
+            <motion.li key={t} variants={{ hide: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0 } }} whileHover={{ y: -5 }}
+              className={cx("paper p-5", i % 3 === 1 && "bg-pink")}>
+              <span className="grid h-12 w-12 place-items-center border-2 border-ink bg-yellow shadow-[3px_3px_0_#0e0e0e]"><Icon size={22} strokeWidth={2.5} /></span>
+              <h3 className="display mt-4 text-[32px]">{t}</h3>
+              <p className="mt-1 text-[15.5px] font-semibold leading-snug">{b}</p>
+              {code && codes.has(code) && <p className="mt-3 inline-block -rotate-1 bg-ink px-2 py-0.5 font-mono text-[12px] text-yellow">refused in this run: {code}</p>}
+            </motion.li>
+          ))}
+        </motion.ul>
       </div>
     </section>
   );
@@ -412,75 +370,167 @@ function Guardrails({ run }: { run: NonNullable<ReturnType<typeof useRun>> }) {
 
 // ───────────────────────── MCP ─────────────────────────
 function Mcp() {
+  const [copied, setCopied] = useState(false);
   const tools = ["foreman_status", "foreman_compile_goal", "foreman_start", "foreman_job", "foreman_ledger", "foreman_workers", "foreman_refusals", "foreman_decisions", "foreman_audit_verify", "foreman_kill"];
   return (
-    <section id="mcp" className="relative overflow-hidden py-24">
-      <Orb color={C.ember} size={420} style={{ left: "-12%", bottom: "-20%", opacity: 0.4 }} />
-      <div className="relative mx-auto grid max-w-[1180px] gap-10 px-5 md:grid-cols-2">
+    <section id="mcp" className="relative px-4 py-24 md:px-8">
+      <div className="mx-auto grid max-w-[1280px] items-center gap-12 lg:grid-cols-2">
         <div>
-          <h2 className="display text-[44px] md:text-[64px]">Run it from Claude.</h2>
-          <p className="mt-5 max-w-[48ch] text-[16px] leading-relaxed text-ink/75">Foreman ships an MCP server. Ask Claude to draft a campaign, check the ledger or hit the kill switch. Approving spend stays a human click in the dashboard.</p>
-          <div className="mt-6 flex flex-wrap gap-1.5">{tools.map((t) => <span key={t} className="chip !text-[11px]">{t}</span>)}</div>
+          <span className="hl marker -rotate-2 text-[24px]">New: MCP server</span>
+          <h2 data-title className="display mt-3 text-[60px] leading-[.88] sm:text-[88px]">Run it from Claude</h2>
+          <p className="mt-5 max-w-[46ch] text-[18px] font-semibold">Ask Claude to draft a campaign, check the ledger or hit the kill switch. Approving spend stays your click.</p>
+          <div className="mt-6 flex flex-wrap gap-2">{tools.map((t) => <span key={t} className="border-2 border-ink bg-surface px-2 py-0.5 font-mono text-[12px] font-bold">{t}</span>)}</div>
         </div>
-        <div className="rounded-[22px] bg-ink p-6 font-mono text-[13px] leading-relaxed text-[#f4eee2]/90 shadow-[0_30px_60px_-30px_rgba(42,14,25,.8)]">
-          <p className="text-white/45"># add it to Claude Code</p>
-          <p>claude mcp add foreman -- bun services/mcp/src/stdio.ts</p>
+        <motion.div initial={{ opacity: 0, rotate: 4, y: 40 }} whileInView={{ opacity: 1, rotate: 1.5, y: 0 }} viewport={{ once: true }} transition={{ type: "spring", stiffness: 110, damping: 15 }}
+          className="relative border-[3px] border-ink bg-ink p-6 font-mono text-[14px] leading-relaxed text-white shadow-[10px_10px_0_#ff2ea8]">
+          <span className="tape -top-3 left-10 -rotate-6" />
+          <Crown className="absolute -right-6 -top-10 w-16 rotate-12" color="#f7ef1c" />
+          <p className="text-white/45"># add Foreman to Claude Code</p>
+          <p className="break-all text-yellow">{MCP_CMD}</p>
           <p className="mt-4 text-white/45"># then ask</p>
-          <p className="text-[#f2b38f]">"Draft a campaign to rebook yesterday's no-shows under $5"</p>
-          <p className="text-[#f2b38f]">"How much has Foreman earned on this contract?"</p>
-        </div>
+          <p className="text-pink">"Draft a campaign to rebook yesterday's no-shows under $5"</p>
+          <p className="text-pink">"How much has Foreman earned on this contract?"</p>
+          <button onClick={() => { void navigator.clipboard?.writeText(MCP_CMD); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+            className="brut brut-pink brut-sm mt-6" style={{ ["--brut-gap" as any]: "#0e0e0e", boxShadow: "4px 4px 0 0 #0e0e0e, 4px 4px 0 2px #f7ef1c" }}>
+            <Copy size={15} />{copied ? "Copied" : "Copy command"}
+          </button>
+        </motion.div>
       </div>
     </section>
   );
 }
 
-// ───────────────────────── footer ─────────────────────────
+// ───────────────────────── CTA + footer ─────────────────────────
 function Footer() {
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start end", "end end"] });
-  const y = useTransform(p, [0, 1], [80, 0]);
   return (
-    <footer ref={ref} className="relative overflow-hidden bg-[#0d0609] px-5 pb-10 pt-24 text-[#f4eee2]">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-      <div className="mx-auto max-w-[1180px]">
-        <div className="flex flex-wrap items-end justify-between gap-8">
-          <div>
-            <h2 className="display max-w-[14ch] text-[38px] md:text-[52px]"><span className="silver">Pay for outcomes, not effort.</span></h2>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Glass href="/app?replay" ink>Watch a real run</Glass>
-              <Glass href={REPO} target="_blank" className="!text-[#f4eee2] !bg-white/10 !border-white/25"><Code2 size={16} />Source</Glass>
-            </div>
+    <footer className="relative bg-ink text-white">
+      <TornEdge color="pink" side="bottom" className="!h-10 rotate-180" />
+      <div className="relative mx-auto grid max-w-[1280px] items-center gap-10 overflow-hidden px-4 pb-16 pt-12 md:px-8 lg:grid-cols-[1.3fr_1fr]">
+        <div className="relative z-10">
+          <h2 data-title className="display text-[64px] leading-[.86] text-yellow sm:text-[96px] lg:text-[120px]">Got no-shows?<br />Let's fill chairs.</h2>
+          <p className="mt-5 text-[22px] font-bold md:text-[26px]">Missed appointments in. Proven bookings out.</p>
+          <div className="mt-8 flex flex-wrap items-center gap-5" style={{ ["--brut-gap" as any]: "#0e0e0e" }}>
+            <a href="/app?replay" className="brut brut-pink" style={{ boxShadow: "6px 6px 0 0 #0e0e0e, 6px 6px 0 2px #f7ef1c" }}>Watch a real run <ArrowRight size={18} /></a>
+            <a href={REPO} target="_blank" rel="noreferrer" className="brut border-white" style={{ boxShadow: "6px 6px 0 0 #0e0e0e, 6px 6px 0 2px #f7ef1c" }}>Read the code <ArrowRight size={18} /></a>
+            <p className="marker -rotate-3 text-[18px] leading-tight text-white/90">Paid per outcome.<br />Never per minute.</p>
           </div>
         </div>
-        <motion.div style={{ y }} className="mt-20 flex items-center gap-4 border-y border-dashed border-white/20 py-6">
-          <Mark size={80} className="h-14 w-14 md:h-24 md:w-24" />
-          <span className="display silver text-[64px] sm:text-[110px] md:text-[168px]">Foreman</span>
-        </motion.div>
-        <div className="mt-6 flex flex-wrap justify-between gap-3 font-mono text-[11px] uppercase tracking-[0.06em] text-white/45">
-          <span>SERV hackathon 02 · Kite track</span><span>Testnet only · consenting numbers only</span>
+        <div data-par="-40" className="relative mx-auto h-[340px] w-full max-w-[420px]">
+          <HardHat className="absolute left-4 top-6 w-[78%] rotate-6" />
+          <Globe className="absolute bottom-6 left-0 w-24 -rotate-12" />
+          <StarFilled className="absolute right-6 top-0 w-16" color="#ff2ea8" />
+          <Sparks className="absolute right-2 top-28 w-14" color="#f7ef1c" />
+          <div className="absolute bottom-2 right-2 rotate-6 border-[3px] border-ink bg-pink px-3 py-2 shadow-[4px_4px_0_#f7ef1c]"><span className="marker text-[20px] leading-tight text-ink">Make no-shows<br />show up</span></div>
         </div>
       </div>
+      <div className="border-y-[3px] border-yellow bg-ink px-4 py-5 md:px-8">
+        <a href="https://foreman-agent.pages.dev" className="display block break-all text-center text-[40px] text-yellow sm:text-[72px] lg:text-[104px]">foreman-agent.pages.dev</a>
+      </div>
+      <div className="mx-auto grid max-w-[1280px] gap-8 px-4 py-12 sm:grid-cols-2 md:px-8 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div><Logo light /><p className="mt-3 max-w-[30ch] text-[17px] font-bold">The AI agent that only gets paid when your customer comes back.</p></div>
+        {[
+          ["Product", [["Dashboard", "/app"], ["Ledger", "/app?replay#ledger"], ["Safety", "/app?replay#safety"], ["SERV decisions", "/app?replay#decisions"]]],
+          ["Build", [["Source code", REPO], ["MCP server", "#mcp"], ["How it works", "#how"]]],
+          ["Network", [["Kitescan", "https://testnet.kitescan.ai"], ["SERV Reasoning", "https://openserv.ai"], ["x402", "https://x402.org"]]],
+        ].map(([h, ls]) => (
+          <div key={h as string}>
+            <h4 className="mb-3 text-[14px] font-extrabold uppercase tracking-wider text-yellow">{h as string}</h4>
+            <ul className="space-y-1.5 text-[15px] font-semibold">{(ls as string[][]).map(([l, u]) => <li key={l}><a href={u} className="hover:text-pink" {...(u!.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}>{l}</a></li>)}</ul>
+          </div>
+        ))}
+      </div>
+      <div className="mx-auto flex max-w-[1280px] flex-wrap justify-between gap-2 border-t-2 border-yellow/40 px-4 py-4 text-[13px] font-semibold text-white/60 md:px-8">
+        <span>© 2026 Foreman · SERV Hackathon 02 · Kite track</span><span>Testnet only · consenting numbers only</span>
+      </div>
+      <Marquee items={["Foreman", "Paid on proof", "Foreman", "No-shows in", "Bookings out"]} tone="yellow" tilt={0} />
     </footer>
   );
 }
 
+// ───────────────────────── GSAP choreography ─────────────────────────
+function useChoreography(root: React.RefObject<HTMLDivElement | null>, ready: boolean) {
+  useLayoutEffect(() => {
+    if (!root.current) return;
+    const ctx = gsap.context(() => {
+      const mm = gsap.matchMedia();
+      mm.add({ motion: "(prefers-reduced-motion: no-preference)", wide: "(min-width: 768px)" }, (c) => {
+        const { motion: ok, wide } = c.conditions as { motion: boolean; wide: boolean };
+        // marquees always roll (slowly if reduced motion is off; static otherwise)
+        if (ok) gsap.utils.toArray<HTMLElement>(".mq-track").forEach((t) => gsap.to(t, { xPercent: -50, duration: 26, ease: "none", repeat: -1 }));
+        if (!ok) return;
+
+        // hero: lines slam up, brush wipes, stickers pop, doodles draw
+        const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+        tl.from(".h-line", { yPercent: 110, rotate: 3, duration: 0.9, stagger: 0.12 })
+          .from(".h-brush", { scaleX: 0, duration: 0.6, ease: "power2.inOut" }, "-=0.45")
+          .from(".h-fade", { y: 24, opacity: 0, duration: 0.6, stagger: 0.08 }, "-=0.3")
+          .from("[data-hero] [data-pop]", { scale: 0, rotate: -25, opacity: 0, duration: 0.7, ease: "back.out(1.8)", stagger: 0.09 }, 0.35);
+        gsap.utils.toArray<SVGPathElement>("[data-hero] [data-draw]").forEach((p, i) => {
+          const len = p.getTotalLength();
+          gsap.fromTo(p, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.8, delay: 0.9 + i * 0.05, ease: "power2.out" });
+        });
+
+        if (!ready) return;
+        // parallax stickers
+        gsap.utils.toArray<HTMLElement>("[data-par]").forEach((el) => {
+          gsap.to(el, { y: Number(el.dataset.par), ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: true } });
+        });
+        // section titles: skew in
+        gsap.utils.toArray<HTMLElement>("[data-title]").forEach((el) => {
+          gsap.from(el, { yPercent: 40, skewY: 4, opacity: 0, duration: 0.8, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 88%" } });
+        });
+        // doodles outside the hero draw on scroll
+        gsap.utils.toArray<SVGPathElement>("section:not([data-hero]) [data-draw]").forEach((p) => {
+          const len = p.getTotalLength();
+          gsap.fromTo(p, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.out", scrollTrigger: { trigger: p, start: "top 90%" } });
+        });
+        // counters
+        gsap.utils.toArray<HTMLElement>("[data-count]").forEach((el) => {
+          const end = Number(el.dataset.count); const o = { v: 0 }; const fmt = el.dataset.fmt === "usd" ? usd : (n: number) => String(Math.round(n));
+          gsap.to(o, { v: end, duration: 1.4, ease: "power2.out", scrollTrigger: { trigger: el, start: "top 85%" }, onUpdate: () => { el.textContent = fmt(o.v); } });
+        });
+        // pinned horizontal "how it works" on wide screens
+        if (wide) {
+          const track = document.querySelector<HTMLElement>("[data-how-track]");
+          const pin = document.querySelector<HTMLElement>("[data-how-pin]");
+          if (track && pin) {
+            gsap.to(track, {
+              x: () => -(track.scrollWidth - window.innerWidth), ease: "none",
+              scrollTrigger: { trigger: pin, start: "top top", end: () => `+=${track.scrollWidth - window.innerWidth}`, pin: true, scrub: 0.6, invalidateOnRefresh: true },
+            });
+          }
+        }
+        ScrollTrigger.refresh();
+      });
+    }, root);
+    return () => ctx.revert();
+  }, [root, ready]);
+}
+
 export default function Landing() {
   const run = useRun();
-  useEffect(() => { document.title = "Foreman · the agent paid only for outcomes"; }, []);
+  const root = useRef<HTMLDivElement>(null);
+  useChoreography(root, !!run);
+  useEffect(() => { document.title = "Foreman · no-shows? we call them back"; }, []);
+  const body = useMemo(() => run && (
+    <>
+      <Marquee items={["Paid on proof", "x402 on Kite", "SERV reasoning", "Real calls", "Real bookings"]} />
+      <What />
+      <Marquee items={["Calls", "Bookings", "Proof", "Payments"]} tone="black" tilt={1.5} />
+      <Posters run={run} />
+      <Numbers run={run} />
+      <How run={run} />
+      <Guardrails run={run} />
+      <Mcp />
+    </>
+  ), [run]);
   return (
     <MotionConfig reducedMotion="user">
-      <div className="grain min-h-full overflow-x-clip">
+      <div ref={root} className="grain min-h-full overflow-x-clip bg-yellow">
+        <HalftoneDefs />
         <Nav />
         <Hero run={run} />
-        {run ? (
-          <>
-            <How run={run} />
-            <Numbers run={run} />
-            <Flow run={run} />
-            <Guardrails run={run} />
-            <Mcp />
-          </>
-        ) : <div className="h-[60vh]" />}
+        {body ?? <div className="h-[60vh]" />}
         <Footer />
       </div>
     </MotionConfig>
