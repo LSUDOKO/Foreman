@@ -4,7 +4,7 @@ import type { OutcomeContract } from "@foreman/shared/contract";
 import { calClient, cancelBooking, createBooking, freeSlots } from "@foreman/shared/calcom";
 import { addUsd, cents, usd } from "@foreman/shared/money";
 import type { ServDecision } from "@foreman/shared/serv";
-import { verifyJson } from "@foreman/shared/sign";
+import { verdictTrusted } from "@foreman/shared/sign";
 import { endCall, twilioCreds } from "@foreman/shared/twilio";
 import type { CallRequest, CallResult, Hex, Verdict } from "@foreman/shared/types";
 import { confirmEmail, newToken } from "./confirm";
@@ -265,7 +265,7 @@ export class Runner {
     });
     if (!v.ok) { this.setCustomer(contractId, c, "failed", { refusal: v.code }); return "done"; }
     const verdict = v.json as Verdict;
-    const signed = await this.verdictSigned(verdict);
+    const signed = await verdictTrusted(verdict, await this.d.oracleSigner(), "call", attemptId);
     store.updateAttempt(attemptId, { verdict });
     log.emit("oracle_verdict", "oracle", { kind: "call", attemptId, customerId: c.id, worker: w.name, verdict: verdict.verdict, code: verdict.code, checks: verdict.checks, signature: verdict.signature, signatureValid: signed }, contractId);
 
@@ -305,12 +305,6 @@ export class Runner {
 
   private oraclePayTo(c: OutcomeContract): Hex {
     return (process.env.ORACLE_PAYTO ?? c.spend.payeeAllowlist[c.spend.payeeAllowlist.length - 1]) as Hex;
-  }
-
-  private async verdictSigned(v: Verdict) {
-    const { signature, ...body } = v;
-    const signer = await this.d.oracleSigner();
-    return body.oracle?.toLowerCase() === signer.toLowerCase() && verifyJson(body, signature, signer);
   }
 
   reputation(contractId: string, w: Worker, delta: number, reason: string) {

@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { recoverMessageAddress } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { canonical, sha256 } from "./canonical";
-import type { Hex } from "./types";
+import type { Hex, Verdict } from "./types";
 
 /** EIP-191 signature over sha256(canonical(payload)). Used for oracle verdicts, attestations, confirmations. */
 export async function signJson(pk: Hex, payload: unknown): Promise<Hex> {
@@ -19,6 +19,16 @@ export async function verifyJson(payload: unknown, signature: Hex, expected: str
   } catch {
     return false;
   }
+}
+
+/**
+ * A verdict is trusted only if the configured oracle signed it AND it is about the thing we asked for.
+ * Without the kind/subject check a genuine PASS for one attempt or outcome could be replayed for another.
+ */
+export async function verdictTrusted(v: Verdict, signer: string, kind: Verdict["kind"], subject: string): Promise<boolean> {
+  const { signature, ...body } = v;
+  return body.kind === kind && body.subject === subject && body.oracle?.toLowerCase() === signer.toLowerCase()
+    && verifyJson(body, signature, signer);
 }
 
 export const hmac = (secret: string, body: string) => createHmac("sha256", secret).update(body).digest("hex");

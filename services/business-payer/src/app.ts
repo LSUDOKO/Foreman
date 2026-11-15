@@ -4,7 +4,7 @@ import { Hono } from "hono";
 import type { KiteNetwork } from "@foreman/shared/kite";
 import { txLink } from "@foreman/shared/kite";
 import { addUsd, cents, fromUnits, gtUsd } from "@foreman/shared/money";
-import { signJson, verifyJson } from "@foreman/shared/sign";
+import { signJson, verdictTrusted } from "@foreman/shared/sign";
 import type { Hex, Verdict } from "@foreman/shared/types";
 import { PaymentRefused, payAndFetch } from "@foreman/shared/x402-buyer";
 
@@ -24,6 +24,8 @@ export interface PayerDeps {
   oracleSigner: Hex;
   maxPerOutcome: string;
   maxOraclePrice: string;
+  /** Bearer for Foreman's /v1/claims (CONSOLE_TOKEN); claims contain customer PII. */
+  foremanToken?: string;
   fetchImpl?: typeof fetch;
 }
 
@@ -45,6 +47,8 @@ export function createPayer(d: PayerDeps) {
       pk: d.pk, network: d.network.caip2, fetchImpl: f,
       guard: (req) => {
         if (req.payTo.toLowerCase() !== expect.payTo.toLowerCase()) throw new PaymentRefused("payee_not_allowlisted", { asked: req.payTo });
+        // The amount is read with our token's decimals, so a 402 naming another asset must never be signed.
+        if (req.asset.toLowerCase() !== d.network.token.address.toLowerCase()) throw new PaymentRefused("asset_not_allowed", { asked: req.asset });
         amount = fromUnits(req.amount, d.network.token.decimals);
         if (gtUsd(amount, expect.max)) throw new PaymentRefused("over_budget", { amount, max: expect.max });
       },
@@ -66,8 +70,7 @@ export function createPayer(d: PayerDeps) {
     if (!v.res.ok) return note({ kind: "refusal", outcomeId: claim.outcomeId, milestone: claim.milestone, customer: claim.customer, code: `oracle_http_${v.res.status}` });
     const verdict = (await v.res.json()) as Verdict;
     note({ kind: "verify", outcomeId: claim.outcomeId, milestone: claim.milestone, customer: claim.customer, amount: v.amount, txHash: v.receipt?.transaction, link: txLink(v.receipt?.transaction, d.network), verdict: verdict.verdict, code: verdict.code });
-    const { signature, ...body } = verdict;
-    const signed = body.oracle?.toLowerCase() === d.oracleSigner.toLowerCase() && (await verifyJson(body, signature, d.oracleSigner));
+    const signed = await verdictTrusted(verdict, d.oracleSigner, "outcome", key);
     if (verdict.verdict !== "PASS" || !signed) {
       failed.add(key);
       return note({ kind: "refusal", outcomeId: claim.outcomeId, milestone: claim.milestone, customer: claim.customer, code: signed ? `proof_failed:${verdict.code}` : "proof_failed:bad_signature" });
@@ -87,7 +90,7 @@ export function createPayer(d: PayerDeps) {
     if (busy) return;
     busy = true;
     try {
-      const r = await f(`${d.foremanUrl}/v1/claims`);
+      const r = await f(`${d.foremanUrl}/v1/claims`, d.foremanToken ? { headers: { authorization: `Bearer ${d.foremanToken}` } } : undefined);
       if (!r.ok) return;
       for (const claim of (await r.json()) as Claim[]) {
         try { await settle(claim); } catch (e) {

@@ -6,6 +6,7 @@ import { Hono } from "hono";
 import { createPublicClient, createWalletClient, defineChain, http, parseAbi } from "viem";
 import type { Account, Chain, PublicClient, WalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+import { hashOf } from "@foreman/shared/canonical";
 import { LocalFacilitator } from "@foreman/shared/facilitator";
 import type { KiteNetwork } from "@foreman/shared/kite";
 import type { Hex } from "@foreman/shared/types";
@@ -41,7 +42,9 @@ export function kiteChain(net: KiteNetwork, pk: Hex): Chainish {
   };
 }
 
-export function createFacilitator(d: { net: KiteNetwork; chain: Chainish; gasAddress?: string }) {
+/** `payees`: when set, only authorizations paying one of these addresses are submitted (the gas wallet isn't a public relay). */
+export function createFacilitator(d: { net: KiteNetwork; chain: Chainish; gasAddress?: string; payees?: string[] }) {
+  const payees = d.payees?.length ? new Set(d.payees.map((x) => x.toLowerCase())) : null;
   const local = new LocalFacilitator();
   const settled = new Map<string, Promise<SettleResponse>>();
   let queue: Promise<unknown> = Promise.resolve();
@@ -49,18 +52,23 @@ export function createFacilitator(d: { net: KiteNetwork; chain: Chainish; gasAdd
   async function verify(p: PaymentPayload, r: PaymentRequirements): Promise<VerifyResponse> {
     if (r.network !== d.net.caip2 || r.asset.toLowerCase() !== d.net.token.address.toLowerCase())
       return { isValid: false, invalidReason: "unsupported_asset" };
+    if (payees && !payees.has(String(r.payTo).toLowerCase())) return { isValid: false, invalidReason: "payee_not_served" };
     const v = await local.verify(p, r);
     if (!v.isValid) return v;
     const a = p.payload.authorization;
+    // A zero-value transfer pays nobody but still spends the gas wallet's KITE.
+    if (BigInt(a.value) === 0n) return { isValid: false, invalidReason: "zero_amount" };
     if (await d.chain.read("authorizationState", [a.from, a.nonce])) return { isValid: false, invalidReason: "nonce_already_used" };
     if ((await d.chain.read("balanceOf", [a.from])) as bigint < BigInt(a.value)) return { isValid: false, invalidReason: "insufficient_funds" };
     return v;
   }
 
   function settle(p: PaymentPayload, r: PaymentRequirements): Promise<SettleResponse> {
-    const key = `${p.payload?.authorization?.from?.toLowerCase()}:${p.payload?.authorization?.nonce}`;
+    // Keyed by the exact payload + requirements: only a byte-identical retry shares a receipt. A different payload that
+    // reuses someone's from+nonce goes through verify (and the on-chain nonce check) instead of inheriting "success".
+    const key = hashOf({ payload: p.payload, r });
     const prior = settled.get(key);
-    if (prior) return prior; // a retried settle of the same authorization gets the same receipt
+    if (prior) return prior;
     const job = queue.then(async (): Promise<SettleResponse> => {
       const v = await verify(p, r);
       if (!v.isValid) return { success: false, errorReason: v.invalidReason, transaction: "", network: r.network };

@@ -11,5 +11,5 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": false
   },
-  "include": ["packages/*/src", "services/*/src", "scripts"]
+  "include": ["packages/*/src", "services/*/src", "scripts", "tests"]
 }

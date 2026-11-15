@@ -72,3 +72,22 @@ test("outcome verification: confirmed and attended", async () => {
 test("pubkey endpoint exposes the verdict signer", async () => {
   expect(((await (await app.request("/v1/pubkey")).json()) as any).signer).toBe(signer);
 });
+
+test("verdict signatures: any edited field, a different signer or a malformed signature fails", async () => {
+  const { verdictTrusted } = await import("@foreman/shared/sign");
+  const base = { attemptId: "att_9", to: "+919800000001", claimedStatus: "accepted", minSeconds: 20, attemptCreatedAt: new Date(Date.now() - 60e3).toISOString() };
+  const v = await verify("/v1/verify/call", { ...base, callSid: realSid });
+  expect(await verdictTrusted(v, signer, "call", "att_9")).toBe(true);
+  for (const edit of [{ subject: "att_10" }, { code: "x" }, { checkedAt: new Date(0).toISOString() }, { checks: [] }, { kind: "outcome" as const }])
+    expect(await verdictValid({ ...v, ...edit }, signer)).toBe(false);
+  expect(await verdictValid(v, privateKeyToAccount(generatePrivateKey()).address)).toBe(false);
+  expect(await verdictValid({ ...v, signature: "0xdeadbeef" }, signer)).toBe(false);
+  // re-signed by another key while still claiming to be the trusted oracle
+  const { signVerdict } = await import("./app");
+  const { signature: _s, oracle: _o, ...rest } = v;
+  const imposter = await signVerdict(generatePrivateKey(), rest);
+  expect(await verdictTrusted({ ...imposter, oracle: signer }, signer, "call", "att_9")).toBe(false);
+  // genuine signature, but asked about another attempt / kind
+  expect(await verdictTrusted(v, signer, "call", "att_other")).toBe(false);
+  expect(await verdictTrusted(v, signer, "outcome", "att_9")).toBe(false);
+});

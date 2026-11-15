@@ -31,6 +31,13 @@ export function requirementFor(o: PaywallOptions, c: Context): PaymentRequiremen
 }
 
 /**
+ * Authorizations currently between verify and settle in this process, keyed by from:nonce. Shared by every paywall
+ * so one signed header can't be presented concurrently (to the same route or another) and buy two deliveries before
+ * the first settlement marks the nonce used. ponytail: per-process; a multi-instance seller needs a shared lock.
+ */
+const inFlight = new Set<string>();
+
+/**
  * x402 v2 "exact" paywall. Order: precheck → 402 or verify → handler → settle (only if the handler
  * succeeded) → PAYMENT-RESPONSE. A handler error means the buyer's authorization is never submitted.
  */
@@ -54,24 +61,34 @@ export function paywall(o: PaywallOptions): MiddlewareHandler {
       c.header(H_REQUIRED, b64({ ...required, error: "invalid_payment_header" }));
       return c.json({ error: "invalid_payment_header" }, 402);
     }
-    const v = await o.facilitator.verify(payment, req);
-    if (!v.isValid) {
-      c.header(H_REQUIRED, b64({ ...required, error: v.invalidReason }));
-      return c.json({ error: "payment_invalid", reason: v.invalidReason }, 402);
+    const lock = `${String(payment.payload?.authorization?.from).toLowerCase()}:${payment.payload?.authorization?.nonce}`;
+    if (inFlight.has(lock)) {
+      c.header(H_REQUIRED, b64({ ...required, error: "payment_in_progress" }));
+      return c.json({ error: "payment_invalid", reason: "payment_in_progress" }, 402);
     }
+    inFlight.add(lock);
+    try {
+      const v = await o.facilitator.verify(payment, req);
+      if (!v.isValid) {
+        c.header(H_REQUIRED, b64({ ...required, error: v.invalidReason }));
+        return c.json({ error: "payment_invalid", reason: v.invalidReason }, 402);
+      }
 
-    c.set("x402Payer" as never, v.payer as never);
-    await next();
-    if (c.res.status >= 400) return;
+      c.set("x402Payer" as never, v.payer as never);
+      await next();
+      if (c.res.status >= 400) return;
 
-    const s = await o.facilitator.settle(payment, req);
-    if (!s.success) {
-      c.res = c.json({ error: "settlement_failed", reason: s.errorReason }, 402);
-      return;
+      const s = await o.facilitator.settle(payment, req);
+      if (!s.success) {
+        c.res = c.json({ error: "settlement_failed", reason: s.errorReason }, 402);
+        return;
+      }
+      await o.onSettled?.(c, s, payment);
+      const res = new Response(c.res.body, c.res);
+      res.headers.set(H_RESPONSE, b64(s));
+      c.res = res;
+    } finally {
+      inFlight.delete(lock);
     }
-    await o.onSettled?.(c, s, payment);
-    const res = new Response(c.res.body, c.res);
-    res.headers.set(H_RESPONSE, b64(s));
-    c.res = res;
   };
 }

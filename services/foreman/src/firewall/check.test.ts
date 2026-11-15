@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { check } from "./check";
 import type { Action, Ctx } from "./check";
 import { ADDR, contract } from "../test/fixtures";
+import { REFUSAL_CODES } from "@foreman/shared/types";
 
 const tenAmIST = new Date("2026-11-15T04:30:00Z");
 const ctx = (o: Partial<Ctx> = {}): Ctx => ({ contract: contract(), status: "running", killSwitch: false, now: tenAmIST, spent: "0.00", seen: () => false, ...o });
@@ -77,5 +78,45 @@ describe("firewall", () => {
     const d = check(pay({ amount: "0.61" }), ctx());
     expect(d.ok).toBe(false);
     if (!d.ok) expect(d.clause).toBe("spend.perCallCap");
+  });
+});
+
+// One row per refusal code check() can emit. If a code is added to REFUSAL_CODES, this test fails until it has a row
+// here (or is listed as raised by the runner rather than the firewall).
+describe("firewall refusal table", () => {
+  const RUNNER_ONLY = ["proof_failed", "injection_detected"]; // raised in runner.ts from oracle verdicts / SERV turn flags
+  const bigApproval = () => { const c = contract(); c.spend.perCallCap = "2.00"; return c; };
+  const rows: [string, Action, Partial<Ctx>][] = [
+    ["kill_switch_engaged", pay(), { killSwitch: true }],
+    ["contract_not_running", call(), { status: "paused" as any }],
+    ["contract_expired", pay(), { now: new Date("2026-11-17T00:00:00Z") }],
+    ["action_not_permitted", { kind: "issue_refund", idemKey: "r" }, {}],
+    ["duplicate_action", pay(), { seen: () => true }],
+    ["no_consent", call({ customer: { consentSource: "   " } }), {}],
+    ["opted_out", call({ customer: { optedOut: true } }), {}],
+    ["quiet_hours", call(), { now: new Date("2026-11-15T01:00:00Z") }], // 06:30 IST
+    ["max_attempts_reached", call({ customer: { attempts: 5 } }), {}],
+    ["worker_below_reputation_floor", call({ worker: { reputation: 0, probationLeft: 0 } }), {}],
+    ["payee_not_allowlisted", pay({ payTo: ADDR.business }), {}],
+    ["per_call_cap_exceeded", pay({ amount: "0.61" }), {}],
+    ["over_budget", pay({ amount: "0.01" }), { spent: "5.00" }],
+    ["needs_human_approval", pay({ amount: "1.01" }), { contract: bigApproval() }],
+    ["proof_missing", { kind: "create_booking", idemKey: "b", callVerified: false, slot: "2026-11-16T10:30:00Z", offered: ["2026-11-16T10:30:00Z"] }, {}],
+    ["slot_not_offered", { kind: "create_booking", idemKey: "b", callVerified: true, slot: "2026-11-16T10:31:00Z", offered: ["2026-11-16T10:30:00Z"] }, {}],
+  ];
+  for (const [want, a, c] of rows) test(`${want}`, () => expect(code(a, c)).toBe(want));
+
+  test("every refusal code is covered by a row or is runner-only", () => {
+    expect(new Set([...rows.map((r) => r[0]), ...RUNNER_ONLY])).toEqual(new Set(REFUSAL_CODES));
+  });
+
+  test("payee comparison is case-insensitive but exact (no prefix / substring match)", () => {
+    expect(code(pay({ payTo: ADDR.clearcall.toUpperCase().replace("0X", "0x") }))).toBe("ALLOW");
+    expect(code(pay({ payTo: ADDR.clearcall.slice(0, 41) }))).toBe("payee_not_allowlisted");
+  });
+
+  test("unknown action kinds are refused even with no idempotency key", () => {
+    for (const kind of ["share_data", "change_price", "free_booking", "cancel_bookings", "__proto__", "constructor", "toString"])
+      expect(code({ kind } as Action)).toBe("action_not_permitted");
   });
 });

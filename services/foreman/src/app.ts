@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { Hono } from "hono";
 import type { MiddlewareHandler } from "hono";
 import { cors } from "hono/cors";
@@ -49,8 +50,9 @@ export function createApp(d: AppDeps) {
   // Console API: bearer CONSOLE_TOKEN when set (SSE may pass ?token= because EventSource can't set headers).
   const auth: MiddlewareHandler = async (c, next) => {
     if (!d.consoleToken || c.req.path === "/api/worker-result") return next();
-    const t = c.req.header("authorization")?.replace(/^Bearer /, "") ?? c.req.query("token");
-    if (t !== d.consoleToken) return c.json({ error: "unauthorized" }, 401);
+    const t = c.req.header("authorization")?.replace(/^Bearer /, "") ?? c.req.query("token") ?? "";
+    const a = Buffer.from(t), b = Buffer.from(d.consoleToken);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return c.json({ error: "unauthorized" }, 401);
     return next();
   };
   app.use("/api/*", auth);
@@ -263,7 +265,9 @@ export function createApp(d: AppDeps) {
   });
 
   // ───────── what the business-payer sees and pays ─────────
-  app.get("/v1/claims", async (c) => {
+  // Claims carry customer names and attendee emails (the oracle matches the booking's attendee), so they need the same
+  // bearer as the console. The business-payer sends it; this route is reachable through the public tunnel.
+  app.get("/v1/claims", auth, async (c) => {
     const id = c.req.query("contractId") ?? store.latestContractId();
     if (!id || !need(id)) return c.json([]);
     const k = need(id)!;

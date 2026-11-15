@@ -77,6 +77,42 @@ describe("honest worker voice loop", () => {
     await hire(w, "att_b");
     expect((await webhook(w, "/twilio/voice/att_b", { CallSid: "x" }, false)).status).toBe(403);
   });
+  test("a Twilio signature is bound to its URL, its params and the auth token", async () => {
+    const w = worker("honest");
+    const { callSid } = await hire(w, "att_sig");
+    await hire(w, "att_sig2");
+    const post = (path: string, params: Record<string, string>, sig: string) =>
+      w.app.request(path, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "x-twilio-signature": sig }, body: new URLSearchParams(params) });
+    const good = { CallSid: callSid, Digits: "1" };
+    // signed for another attempt's URL
+    expect((await post("/twilio/turn/att_sig", good, twilioSignature(TOKEN, "http://worker/twilio/turn/att_sig2", good))).status).toBe(403);
+    // caller-controlled field changed after signing (keypad 1 → 9)
+    expect((await post("/twilio/turn/att_sig", { ...good, Digits: "9" }, twilioSignature(TOKEN, "http://worker/twilio/turn/att_sig", good))).status).toBe(403);
+    // signed with the wrong auth token
+    expect((await post("/twilio/turn/att_sig", good, twilioSignature("other-token", "http://worker/twilio/turn/att_sig", good))).status).toBe(403);
+    // a forged "completed" status can't end the call and post a result
+    expect((await post("/twilio/status/att_sig", { CallSid: callSid, CallStatus: "completed", CallDuration: "90" }, "AAAA")).status).toBe(403);
+    expect(results.some((r) => r.attemptId === "att_sig")).toBe(false);
+    expect((await webhook(w, "/twilio/turn/att_sig", good)).status).toBe(200);
+  });
+
+  test("one call payment can't be replayed to hire a second call or the bonus route", async () => {
+    const w = worker("honest");
+    let header = "";
+    const capture = (async (u: string, i?: RequestInit) => {
+      const r = await w.viaApp(u, i);
+      header ||= new Headers(i?.headers).get("PAYMENT-SIGNATURE") ?? "";
+      return r;
+    }) as unknown as typeof fetch;
+    const r = await payAndFetch("http://worker/v1/call", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(reqFor("att_r1")) },
+      { pk: generatePrivateKey(), network: net.caip2, fetchImpl: capture, guard: () => {} });
+    expect(r.res.status).toBe(200);
+    const replay = (path: string, body: unknown) => w.app.request(path, { method: "POST", headers: { "content-type": "application/json", "PAYMENT-SIGNATURE": header }, body: JSON.stringify(body) });
+    expect((await replay("/v1/call", reqFor("att_r2"))).status).toBe(402);
+    expect(w.calls.has("att_r2")).toBe(false);
+    expect((await replay("/v1/bonus/att_r1", {})).status).toBe(402); // 0.50 call payment ≥ 0.20 bonus, but already spent
+    expect(w.calls.get("att_r1")!.bonusPaid).toBe(false);
+  });
 
   test("social-engineering attack gets the fixed line, is re-asked once, and records requested actions", async () => {
     const w = worker("honest");

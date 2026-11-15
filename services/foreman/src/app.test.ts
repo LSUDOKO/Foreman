@@ -57,6 +57,51 @@ describe("confirmation link", () => {
   test("unknown token → 404 page", async () => {
     expect((await world().app.request("/c/nope")).status).toBe(404);
   });
+  test("GET never changes state (link scanners and previews can't confirm for the customer)", async () => {
+    const w = world();
+    for (let i = 0; i < 3; i++) await w.app.request(`/c/${w.token}`);
+    expect(w.store.outcome("out_1")!.state).toBe("confirmation_sent");
+    expect((await w.app.request(`/c/${w.token}/confirm`)).status).toBe(404); // GET on the action route is not a route
+    expect(w.store.outcome("out_1")!.state).toBe("confirmation_sent");
+  });
+  test("an expired link shows 'expired' (410) and confirms nothing", async () => {
+    const w = world();
+    w.store.updateOutcome("out_1", { confirmExpiresAt: new Date(Date.now() - 1000).toISOString() });
+    expect(await (await w.app.request(`/c/${w.token}`)).text()).toContain("This link has expired.");
+    const r = await w.app.request(`/c/${w.token}/confirm`, { method: "POST" });
+    expect(r.status).toBe(410);
+    expect(w.store.outcome("out_1")!.state).toBe("confirmation_sent");
+    expect(w.log.since(0).some((e) => e.type === "customer_confirmed")).toBe(false);
+  });
+  test("decline after confirm is a no-op (the paid-for booking is not released)", async () => {
+    const w = world();
+    await w.app.request(`/c/${w.token}/confirm`, { method: "POST" });
+    const r = await w.app.request(`/c/${w.token}/decline`, { method: "POST" });
+    expect(await r.text()).toContain("You're booked.");
+    expect(w.store.outcome("out_1")!.state).toBe("confirmed_by_customer");
+    expect(w.log.since(0).some((e) => e.type === "customer_declined" || e.type === "booking_cancelled")).toBe(false);
+  });
+  test("a token is only good for its own outcome, and near-miss tokens are invalid", async () => {
+    const w = world();
+    for (const t of [w.token.slice(0, -1), w.token + "A", w.token.toUpperCase(), encodeURIComponent("<script>")]) {
+      const r = await w.app.request(`/c/${t}/confirm`, { method: "POST" });
+      expect(r.status).toBe(404);
+      expect(await r.text()).not.toContain("<script>");
+    }
+    expect(w.store.outcome("out_1")!.state).toBe("confirmation_sent");
+  });
+  test("confirm after decline is a no-op", async () => {
+    const w = world();
+    const cal = Bun.serve({ port: 0, fetch: () => Response.json({ status: "success" }) });
+    process.env.CALCOM_API_BASE = `http://localhost:${cal.port}`;
+    try {
+      await w.app.request(`/c/${w.token}/decline`, { method: "POST" });
+      const r = await w.app.request(`/c/${w.token}/confirm`, { method: "POST" });
+      expect(await r.text()).toContain("No problem.");
+      expect(w.store.outcome("out_1")!.state).toBe("cancelled");
+      expect(w.log.since(0).some((e) => e.type === "customer_confirmed")).toBe(false);
+    } finally { delete process.env.CALCOM_API_BASE; cal.stop(); }
+  });
   test("signed confirmation record for the oracle", async () => {
     const w = world();
     await w.app.request(`/c/${w.token}/confirm`, { method: "POST" });
@@ -156,4 +201,14 @@ test("console API needs the bearer token when one is configured; public and work
   expect((await w.app.request("/api/feed?token=wrong")).status).toBe(401);
   expect((await w.app.request(`/c/${w.token}`)).status).toBe(200);
   expect((await w.app.request("/api/worker-result", { method: "POST", body: "{}" })).status).toBe(401); // HMAC, not bearer
+});
+
+test("/v1/claims (customer names + attendee emails) needs the bearer token when one is configured", async () => {
+  const w = world("t0ken");
+  await w.app.request(`/c/${w.token}/confirm`, { method: "POST" });
+  expect((await w.app.request(`/v1/claims?contractId=${w.contractId}`)).status).toBe(401);
+  expect((await w.app.request(`/v1/claims?contractId=${w.contractId}`, { headers: { authorization: "Bearer wrong" } })).status).toBe(401);
+  const ok = await w.app.request(`/v1/claims?contractId=${w.contractId}`, { headers: { authorization: "Bearer t0ken" } });
+  expect(ok.status).toBe(200);
+  expect(((await ok.json()) as any[])[0].expected.attendeeEmail).toBe("asha@example.com");
 });

@@ -16,6 +16,7 @@ const { app, tick } = createPayer({
   oracleSigner: addr("ORACLE_SIGNER_ADDRESS"),
   maxPerOutcome: str("BUSINESS_MAX_PER_OUTCOME", "6.00"),
   maxOraclePrice: str("ORACLE_PRICE", "0.02"),
+  foremanToken: process.env.CONSOLE_TOKEN || undefined,
 });
 
 setInterval(() => void tick(), num("PAYER_INTERVAL_MS", 10_000));
