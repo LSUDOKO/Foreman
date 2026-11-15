@@ -10,7 +10,7 @@
       "devDependencies": {
         "@types/bun": "latest",
         "hono": "^4.13.0",
-        "solc": "0.8.24",
+        "solc": "0.8.38",
         "typescript": "^7.0.2",
         "viem": "^2.57.0",
         "zod": "^4.6.0",
@@ -21,7 +21,7 @@
       "version": "0.1.0",
       "dependencies": {
         "framer-motion": "^14.14.0",
-        "gsap": "3.13.0",
+        "gsap": "3.15.1",
         "lucide-react": "^1.72.0",
         "react": "19",
         "react-dom": "19",
@@ -446,7 +446,7 @@
 
     "graceful-fs": ["graceful-fs@4.2.12", "", {}, "sha512-iuyGF2E4oafQfPsRrG2wtY2ILupMhvtdrhzrxB+0VcjsPpSPttpfYdjnGFGsTi5MaJFjI1jOKHPQ6UTbTj9TAw=="],
 
-    "gsap": ["gsap@3.13.0", "", {}, "sha512-QL7MJ2WMjm1PHWsoFrAQH/J8wUeqZvMtHO58qdekHpCfhvhSL4gSiz6vJf5EeMP0LOn3ZCprL2ki/gjED8ghVw=="],
+    "gsap": ["gsap@3.15.1", "", {}, "sha512-63yjWRFWj3QRP1UOuD8kcidCcy3nxb1mMRpwHr/xJRvPfm9GtWOXFAYUiL0ro1fgPq2nY53LR+98pAgy9BumBg=="],
 
     "has-symbols": ["has-symbols@1.1.0", "", {}, "sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ=="],
 
@@ -546,8 +546,6 @@
 
     "openai": ["openai@7.56.0", "", { "peerDependencies": { "@aws-sdk/credential-provider-node": ">=3.972.0 <4", "@smithy/hash-node": ">=4.3.0 <5", "@smithy/signature-v4": ">=5.4.0 <6", "google-auth-library": ">=9.15.1 <12", "undici": ">=5 <9", "ws": "^8.21.0", "zod": "^3.25 || ^4.0" }, "optionalPeers": ["@aws-sdk/credential-provider-node", "@smithy/hash-node", "@smithy/signature-v4", "google-auth-library", "undici", "ws", "zod"] }, "sha512-viGsb+pfPxaRqnap556J4vScLNXPzRRFAQ7dbWKvDaeyY5rleW3vEKnw7Mo4gnnee2kYOhppHXZS1b5JH42HCw=="],
 
-    "os-tmpdir": ["os-tmpdir@1.0.2", "", {}, "sha512-D2FR03Vir7FIu45XBY20mTb+/ZSWB00sjU9jdQXt83gDrI4Ztz5Fs7/yy74g2N5SVQY4xY1qDr4rNddwYRVX0g=="],
-
     "ox": ["ox@0.14.65", "", { "dependencies": { "@adraffy/ens-normalize": "^1.11.0", "@noble/ciphers": "^1.3.0", "@noble/curves": "1.9.1", "@noble/hashes": "^1.8.0", "@scure/bip32": "^1.7.0", "@scure/bip39": "^1.6.0", "abitype": "^1.2.3", "eventemitter3": "5.0.1" }, "peerDependencies": { "typescript": ">=5.4.0" }, "optionalPeers": ["typescript"] }, "sha512-K7oj+jvEP4Gf78ZOYuWAWzKEX/g5z7p6ukj84gdbFnezmFSt6SpprEp9tH5tymXsywSqRdeqk+8JL4+9o0Schw=="],
 
     "parseurl": ["parseurl@1.3.3", "", {}, "sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ=="],
@@ -618,7 +616,7 @@
 
     "side-channel-weakmap": ["side-channel-weakmap@1.0.2", "", { "dependencies": { "call-bound": "^1.0.2", "es-errors": "^1.3.0", "get-intrinsic": "^1.2.5", "object-inspect": "^1.13.3", "side-channel-map": "^1.0.1" } }, "sha512-WPS/HvHQTYnHisLo9McqBHOJk2FkHO/tlpvldyrnem4aeQp4hai3gythswg6p01oSoTl58rcpiFAjF2br2Ak2A=="],
 
-    "solc": ["solc@0.8.24", "", { "dependencies": { "command-exists": "^1.2.8", "commander": "^8.1.0", "follow-redirects": "^1.12.1", "js-sha3": "0.8.0", "memorystream": "^0.3.1", "semver": "^5.5.0", "tmp": "0.0.33" }, "bin": { "solcjs": "solc.js" } }, "sha512-G5yUqjTUPc8Np74sCFwfsevhBPlUifUOfhYrgyu6CmYlC6feSw0YS6eZW47XDT23k3JYdKx5nJ+Q7whCEmNcoA=="],
+    "solc": ["solc@0.8.38", "", { "dependencies": { "command-exists": "^1.2.8", "commander": "^8.1.0", "follow-redirects": "^1.12.1", "js-sha3": "0.8.0", "memorystream": "^0.3.1", "semver": "^5.5.0", "tmp": "0.2.6" }, "bin": { "solcjs": "solc.js" } }, "sha512-DsDLa7uACQVVkE0DYNnUGC49b/yuCJ9ymWlcCEwmaJGcETPC6pTC+BXaRK9ADW8YVeMyxEKUtJsUwRAIG28jtQ=="],
 
     "source-map-js": ["source-map-js@1.2.2", "", {}, "sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw=="],
 
@@ -632,7 +630,7 @@
 
     "tinyglobby": ["tinyglobby@0.2.17", "", { "dependencies": { "fdir": "^6.5.0", "picomatch": "^4.0.4" } }, "sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g=="],
 
-    "tmp": ["tmp@0.0.33", "", { "dependencies": { "os-tmpdir": "~1.0.2" } }, "sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw=="],
+    "tmp": ["tmp@0.2.6", "", {}, "sha512-5sJPdPjfI5Kx+qbrDesxkglRBxW//g7hCsqspEjwkewGvBMGIKMOTKzLt1hFVJzyadba3lDUN20O9qhvbQUSTA=="],
 
     "toidentifier": ["toidentifier@1.0.1", "", {}, "sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA=="],
 
