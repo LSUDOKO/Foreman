@@ -35,6 +35,8 @@ export async function createCall(
     StatusCallback: p.statusCallback, StatusCallbackMethod: "POST", StatusCallbackEvent: "completed",
     TimeLimit: String(p.timeLimit),
   });
+  // Opt-in call recording for demo footage (TWILIO_RECORD=1): both sides, one channel each. Only for consenting numbers.
+  if (process.env.TWILIO_RECORD === "1") { body.set("Record", "true"); body.set("RecordingChannels", "dual"); }
   const res = await f(`${callsUrl(c)}.json`, {
     method: "POST",
     headers: { authorization: auth(c), "content-type": "application/x-www-form-urlencoded" },
