@@ -57,7 +57,7 @@ export function createOracle(d: OracleDeps) {
     const claim = (await c.req.json()) as OutcomeClaim;
     let result;
     if (claim.milestone === "confirmed") {
-      const booking = await getBooking(calClient(process.env.CALCOM_READ_KEY ?? process.env.CALCOM_API_KEY ?? "sandbox", f), claim.bookingUid);
+      const booking = await getBooking(calClient(process.env.CALCOM_READ_KEY || process.env.CALCOM_API_KEY || "sandbox", f), claim.bookingUid);
       const conf = await readConfirmation(claim.outcomeId);
       result = checkConfirmed(claim, booking, conf);
     } else {
