@@ -16,3 +16,8 @@ video/film/out/
 *.sqlite-wal
 .mcp.json
 .dev.vars
+
+# film work files and large regenerable media
+video/footage-work/
+video/film/public/audio/*.wav
+video/film/public/audio/sfx/

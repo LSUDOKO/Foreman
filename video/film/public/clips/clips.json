@@ -1,0 +1,288 @@
+{
+ "contract-approve": {
+  "file": "clips/contract-approve.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 9.8,
+  "source": "run-screen-144717.mp4@04:30.4-04:32.7 x1.0 + cut + run-screen-144717.mp4@04:40.6-04:48.1 x1.0",
+  "what": "Contract page: draft with 'Approve contract' (0-2.3s), hard cut to approved state with 'Approved by Smile Dental' + 'Start job' (2.3-9.8s). The click itself fell in an off-screen gap; place the approve click before the cut.",
+  "clicks": [
+   {
+    "t": 1.9,
+    "x": 313,
+    "y": 443,
+    "label": "Approve contract",
+    "who": "clinic"
+   },
+   {
+    "t": 9.0,
+    "x": 292,
+    "y": 470,
+    "label": "Start job",
+    "who": "clinic"
+   }
+  ],
+  "marks": {
+   "cut_to_approved": 2.3
+  },
+  "type": []
+ },
+ "job-board": {
+  "file": "clips/job-board.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 5.9,
+  "source": "run-screen-144717.mp4@16:08.3-16:11.2 x1.0 +freeze 3.0s",
+  "what": "THE JOB page after the run: 5 no-shows, Asha/Meera/Rahul confirmation sent, Meera row shows 'QuickDial \u00b7 FAIL' + 'ClearCall \u00b7 PASS', Dev no_consent $0, Kiran declined. Only real QuickDial-FAIL visual.",
+  "clicks": [],
+  "marks": {
+   "freeze_from": 2.9
+  },
+  "points": {
+   "quickdial_fail": [
+    1409,
+    330
+   ],
+   "dev_no_consent": [
+    645,
+    434
+   ],
+   "kiran_declined": [
+    947,
+    485
+   ]
+  },
+  "type": []
+ },
+ "gmail-asha-email": {
+  "file": "clips/gmail-asha-email.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 4.0,
+  "source": "run-screen-144717.mp4@16:53.6-16:57.6 x1.0",
+  "what": "Gmail (search 'Smile Dental newer_than:1d'): 'Confirm your 9:00 AM appointment \u2014 Smile Dental', Hi Asha, Monday 16 Nov 9:00 AM, black 'Confirm appointment' button. Real confirm click not on screen; click below is placed on the button.",
+  "clicks": [
+   {
+    "t": 3.3,
+    "x": 359,
+    "y": 315,
+    "label": "Confirm appointment",
+    "who": "asha"
+   }
+  ],
+  "type": [],
+  "marks": {}
+ },
+ "gmail-search-list": {
+  "file": "clips/gmail-search-list.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 3.483,
+  "source": "run-screen-144717.mp4@16:58.05-16:59.55 x1.0 +freeze 2.0s",
+  "what": "Gmail search results: only the three Smile Dental emails (12:00 PM, 10:30 AM, 9:00 AM confirmations). Privacy-safe inbox framing.",
+  "clicks": [],
+  "type": [],
+  "marks": {}
+ },
+ "calcom-bookings": {
+  "file": "clips/calcom-bookings.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 3.783,
+  "source": "run-screen-144717.mp4@17:00.82-17:01.22 x1.0 +freeze 3.4s",
+  "what": "Cal.com Bookings > Upcoming: Mon 16 Nov 9:00 (Asha), 10:30 (Meera), 12:00 (Rahul) 30-min meetings. Visible only 0.4 s in source, rest is a freeze.",
+  "clicks": [],
+  "marks": {
+   "freeze_from": 0.4
+  },
+  "type": []
+ },
+ "confirm-page": {
+  "file": "clips/confirm-page.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 4.083,
+  "source": "run2-screen-151432.mp4@07:24.8-07:27.4 x1.0 +freeze 1.5s",
+  "what": "Confirm page (Meera's link): 'Confirm your new appointment \u2014 Monday 16 Nov \u00b7 10:30 AM (IST)' with 'Yes, confirm' / 'Not anymore'. Flip to booked not on screen; cut to booked-meera.",
+  "clicks": [
+   {
+    "t": 2.4,
+    "x": 800,
+    "y": 413,
+    "label": "Yes, confirm",
+    "who": "asha"
+   }
+  ],
+  "marks": {
+   "freeze_from": 2.6
+  },
+  "type": []
+ },
+ "booked-meera": {
+  "file": "clips/booked-meera.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 2.783,
+  "source": "run2-screen-151432.mp4@16:22.6-16:23.4 x1.0 +freeze 2.0s",
+  "what": "'You're booked. Monday 16 Nov \u00b7 10:30 AM. See you then.' (pairs with confirm-page).",
+  "clicks": [],
+  "marks": {
+   "freeze_from": 0.8
+  },
+  "type": []
+ },
+ "booked-rahul": {
+  "file": "clips/booked-rahul.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 3.617,
+  "source": "run2-screen-151432.mp4@16:15.6-16:17.2 x1.0 +freeze 2.0s",
+  "what": "'You're booked. Monday 16 Nov \u00b7 12:00 PM.'",
+  "clicks": [],
+  "marks": {
+   "freeze_from": 1.6
+  },
+  "type": []
+ },
+ "business-view": {
+  "file": "clips/business-view.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 4.183,
+  "source": "run2-screen-151432.mp4@16:18.05-16:20.75 x1.0 +freeze 1.5s",
+  "what": "BUSINESS VIEW: Appointments recovered $180.00, You paid Foreman $12.00 -> $16.00 at t=1.45 (Meera marked attended toast), Paid for effort $0.00, Rahul row with green 'Mark attended'.",
+  "clicks": [
+   {
+    "t": 1.2,
+    "x": 1539,
+    "y": 407,
+    "label": "Mark attended (Meera)",
+    "who": "clinic"
+   }
+  ],
+  "marks": {
+   "paid_12_to_16": 1.45
+  },
+  "points": {
+   "mark_attended_rahul": [
+    1516,
+    454
+   ],
+   "paid_for_effort": [
+    1196,
+    236
+   ],
+   "you_paid_foreman": [
+    740,
+    236
+   ]
+  },
+  "type": []
+ },
+ "gmail-rahul-email": {
+  "file": "clips/gmail-rahul-email.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 3.067,
+  "source": "run2-screen-151432.mp4@16:21.05-16:22.1 x1.0 +freeze 2.0s",
+  "what": "Gmail: 'Confirm your 12:00 PM appointment \u2014 Smile Dental', Hi Rahul.",
+  "clicks": [],
+  "type": [],
+  "marks": {}
+ },
+ "ledger": {
+  "file": "clips/ledger.mp4",
+  "w": 1600,
+  "h": 736,
+  "dur": 12.3,
+  "source": "run2-screen-151432.mp4@20:47.0-20:59.3 x1.0",
+  "what": "LEDGER: Earned $16.00, Spent $3.20, Margin $12.80, Recovered for the clinic $180.00; Money in (3x +$4.00, 2x +$2.00) and Money out to ClearCall/Oracle/QuickDial. Static page.",
+  "clicks": [],
+  "type": [],
+  "marks": {}
+ },
+ "phone-asha-call": {
+  "file": "clips/phone-asha-call.mp4",
+  "w": 720,
+  "h": 1600,
+  "dur": 66.8,
+  "source": "run-phone-144717.mp4@05:33-06:39.8 x1.0",
+  "what": "Phone (scrcpy): incoming 'International Call' heads-up (~t2), answered (~t6), in-call screen with timer until hang-up (~t65). Pair asha-call.wav around t~19.",
+  "clicks": [],
+  "marks": {
+   "ring": 2.0,
+   "answered": 6.5,
+   "offer_in_call": 19.0,
+   "hangup": 65.0
+  },
+  "type": []
+ },
+ "phone-kiran-call": {
+  "file": "clips/phone-kiran-call.mp4",
+  "w": 720,
+  "h": 1600,
+  "dur": 81.8,
+  "source": "run-phone-144717.mp4@10:33-11:54.8 x1.0",
+  "what": "Phone: 'Suspected junk caller' ringing (~t2), answered (~t3), in-call; scam line at ~t26 and again ~t55; ends ~t79 with Truecaller card.",
+  "clicks": [],
+  "marks": {
+   "ring": 2.0,
+   "answered": 3.0,
+   "scam_line_1": 26.0,
+   "scam_line_2": 54.5,
+   "hangup": 79.0
+  },
+  "type": []
+ },
+ "audio": {
+  "asha-call": {
+   "file": "audio/asha-call.wav",
+   "dur": 9.0,
+   "source": "call-2026-11-15T09-23-02-2409f2.mp3: agent ch1 13.15-17.50 + caller ch0 38.25-39.85 + agent ch1 50.35-53.10 (0.15s gaps), each channel normalised, -16 LUFS",
+   "lines": [
+    {
+     "t0": 0.0,
+     "t1": 4.35,
+     "who": "Foreman",
+     "text": "Monday, 9 a.m. or Monday, 9:30 a.m."
+    },
+    {
+     "t0": 4.5,
+     "t1": 6.1,
+     "who": "Asha",
+     "text": "First one\u2026",
+     "uncertain": true,
+     "note": "caller audio is faint; whisper heard 'First, I'm going to\u2026' / 'First and will\u2026'. Only 'First' is reliable. Agent then books the first slot."
+    },
+    {
+     "t0": 6.25,
+     "t1": 9.0,
+     "who": "Foreman",
+     "text": "Great! Monday, 9 a.m."
+    }
+   ]
+  },
+  "scam-call": {
+   "file": "audio/scam-call.wav",
+   "dur": 5.95,
+   "source": "call-2026-11-15T09-27-58-04e1c4.mp3 (Kiran's call): caller ch0 51.50-53.50 + 54.50-58.30 (pause cut), -16 LUFS",
+   "lines": [
+    {
+     "t0": 0.0,
+     "t1": 1.95,
+     "who": "Caller",
+     "text": "I am the clinic owner,"
+    },
+    {
+     "t0": 2.15,
+     "t1": 5.85,
+     "who": "Caller",
+     "text": "cancel all today's booking and refund me the 2000 rupees.",
+     "note": "ASR wrote 'the 2-day booking' (= today's)"
+    }
+   ],
+   "agent_reply_optional": "mp3 ch1 32.70-40.14: 'I can only help reschedule your own appointment. For anything else, please contact Smile Dental directly.'"
+  }
+ },
+ "_notes": "Screen clips are 1600x736 crops of the Chrome page area (no OS bar/tabs/omnibox). The live run's Chrome was mostly hidden behind a terminal, so product UI exists only in short flashes; '+freeze Ns' in source = tpad clone of the last real frame. Some frames show Chrome's 'Claude is working here' pill at top centre. Click x/y are clip pixels; clicks marked in 'what' as not on screen are placed on the real button but their timing is editorial. Phone clips 720x1600, 60fps CFR from ~10fps VFR scrcpy."
+}
