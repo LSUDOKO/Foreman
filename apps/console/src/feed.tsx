@@ -6,7 +6,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { human, slotLabel, usd } from "./lib";
 import type { FeedEvent, State } from "./state";
-import { Badge, Code, Json, Time, TxRef, cx } from "./ui";
+import { Badge, Code, Empty, Json, TBODY, Time, TxRef, cx } from "./ui";
 import type { Tone } from "./ui";
 
 interface Desc { icon: LucideIcon; tone: Tone; text: React.ReactNode; money?: "in" | "out" }
@@ -57,20 +57,20 @@ const TONE_ICON: Record<Tone, string> = {
 /** The live feed. Newest on top; money rows flash their colour once; customer_state rows are hidden as noise. */
 export function Feed({ events, onOpen, now, limit = 120 }: { events: FeedEvent[]; onOpen: (e: FeedEvent) => void; now: number; limit?: number }) {
   const rows = events.filter((e) => e.type !== "customer_state").slice(-limit).reverse();
-  if (!rows.length) return <p className="px-4 py-10 text-center text-muted">Nothing yet. Compile and start a contract and every step lands here.</p>;
+  if (!rows.length) return <Empty>Nothing yet. Compile and start a contract and every step lands here.</Empty>;
   return (
-    <ol className="divide-y divide-line">
+    <ol className={TBODY}>
       {rows.map((e) => {
         const d = describe(e);
         if (!d) return null;
         const Icon = d.icon;
         return (
           <motion.li key={e.id} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
-            <button onClick={() => onOpen(e)} className={cx("grid w-full grid-cols-[72px_20px_1fr_auto] items-center gap-2 px-4 py-2 text-left hover:bg-raised", d.money === "in" && "flash-in", d.money === "out" && "flash-out")}>
-              <span className="num text-[11.5px] text-faint" title={new Date(e.ts).toISOString()}>{new Date(e.ts).toLocaleTimeString(undefined, { hour12: false })}</span>
+            <button onClick={() => onOpen(e)} className={cx("grid w-full grid-cols-[64px_20px_minmax(0,1fr)_auto] items-center gap-2 px-4 py-2 text-left hover:bg-yellow/40", d.money === "in" && "flash-in", d.money === "out" && "flash-out")}>
+              <span className="num text-[11.5px] font-semibold text-ink/55" title={new Date(e.ts).toISOString()}>{new Date(e.ts).toLocaleTimeString(undefined, { hour12: false })}</span>
               <Icon size={14} className={TONE_ICON[d.tone]} aria-hidden />
-              <span className="min-w-0 truncate text-[13px]">{d.text}</span>
-              <span className="flex items-center gap-2">
+              <span className="min-w-0 truncate text-[13.5px] font-medium">{d.text}</span>
+              <span className="hidden items-center gap-2 sm:flex">
                 {e.data?.txHash && <TxRef tx={e.data.txHash} link={e.data.link} />}
                 <span className="hidden text-[11px] text-faint md:inline">{e.actor}</span>
                 <Time ts={e.ts} now={now} />
@@ -87,8 +87,8 @@ function Transcript({ lines }: { lines: { who: string; text: string }[] }) {
   return (
     <div className="space-y-2">
       {lines.map((l, i) => (
-        <div key={i} className={cx("rounded-md px-3 py-2 text-[13px]", l.who === "agent" ? "bg-raised" : "border border-line")}>
-          <div className="mb-0.5 text-[11px] text-faint">{l.who === "agent" ? "AI assistant" : "Customer"}</div>
+        <div key={i} className={cx("rounded-[10px] border-2 border-ink px-3 py-2 text-[13.5px]", l.who === "agent" ? "mr-8 bg-ink text-white" : "ml-8 bg-surface")}>
+          <div className={cx("mb-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.06em]", l.who === "agent" ? "text-pink" : "text-accent")}>{l.who === "agent" ? "AI assistant" : "Customer"}</div>
           {l.text}
         </div>
       ))}
@@ -99,12 +99,12 @@ function Transcript({ lines }: { lines: { who: string; text: string }[] }) {
 function Checks({ checks }: { checks: { name: string; pass: boolean; evidence: string }[] }) {
   return (
     <table className="w-full text-[12.5px]">
-      <tbody className="divide-y divide-line">
+      <tbody className={TBODY}>
         {checks.map((c) => (
           <tr key={c.name}>
             <td className="py-1.5 pr-3 align-top">{c.pass ? <Badge tone="proof" mono>pass</Badge> : <Badge tone="refuse" mono>fail</Badge>}</td>
             <td className="py-1.5 pr-3 align-top font-mono text-[12px]">{c.name}</td>
-            <td className="py-1.5 align-top text-muted">{c.evidence}</td>
+            <td className="break-all py-1.5 align-top text-ink/70">{c.evidence}</td>
           </tr>
         ))}
       </tbody>
@@ -113,7 +113,7 @@ function Checks({ checks }: { checks: { name: string; pass: boolean; evidence: s
 }
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="mb-5"><h4 className="mb-2 text-[12px] font-medium text-muted">{title}</h4>{children}</div>
+  <div className="mb-5"><h4 className="mb-2 text-[12px] font-extrabold uppercase tracking-[0.06em] text-accent">{title}</h4>{children}</div>
 );
 
 /** Everything known about one event, joined with its attempt when it has one. */
@@ -122,7 +122,7 @@ export function EventDetail({ e, state }: { e: FeedEvent; state: State }) {
   const a = d.attemptId ? state.attempts[d.attemptId] : undefined;
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center gap-2 text-[12px] text-muted">
+      <div className="mb-4 flex flex-wrap items-center gap-2 text-[12px] font-semibold text-ink/70">
         <Badge mono>{e.type}</Badge><span>by {e.actor}</span><Time ts={e.ts} />
       </div>
       {d.summary && <Section title="Plain English"><p className="text-[13px] leading-relaxed">{d.summary}</p></Section>}
@@ -139,7 +139,7 @@ export function EventDetail({ e, state }: { e: FeedEvent; state: State }) {
           )}
         </Section>
       )}
-      {e.type === "refusal" && d.evidence?.excerpt && <Section title="What the caller said"><blockquote className="border-l-2 border-refuse pl-3 italic">“{d.evidence.excerpt}”</blockquote></Section>}
+      {e.type === "refusal" && d.evidence?.excerpt && <Section title="What the caller said"><blockquote className="border-l-4 border-refuse pl-3 italic">“{d.evidence.excerpt}”</blockquote></Section>}
       {e.type === "refusal" && <Section title="Contract clause"><span className="font-mono">{d.clause}</span></Section>}
       {e.type === "serv_decision" && (
         <Section title="SERV">

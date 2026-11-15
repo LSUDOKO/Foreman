@@ -1,8 +1,10 @@
 import {
-  Search, Ban, Bot, Briefcase, Building2, FileText, LayoutDashboard, Menu, Pause, Play, Receipt, Rewind, ShieldAlert, Users,
+  ArrowRight, Search, Ban, Bot, Briefcase, Building2, Download, FileText, LayoutDashboard, Menu, Pause, Play, Receipt, Rewind, ShieldAlert, Users, X,
 } from "lucide-react";
-import { MotionConfig } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { Crown, HalftoneDefs, HardHat, Sparks, Star, StarFilled } from "./art";
 import { Wordmark } from "./brand";
 import { AppCtx } from "./ctx";
 import { EventDetail, describe } from "./feed";
@@ -18,7 +20,7 @@ import Safety from "./pages/Safety";
 import Workers from "./pages/Workers";
 import { deriveState, demoMoments } from "./state";
 import type { FeedEvent, Modes } from "./state";
-import { Badge, Button, Dialog, Sheet, Skeleton, Toaster, cx, useToast } from "./ui";
+import { Badge, Button, Dialog, PageTitle, Sheet, Skeleton, Toaster, cx, useToast } from "./ui";
 
 const PAGES = [
   ["overview", "Overview", LayoutDashboard, Overview],
@@ -43,7 +45,7 @@ function ModeBadges({ modes }: { modes: Modes | null }) {
     ["email", modes.email, modes.email === "smtp"],
   ];
   return (
-    <div className="hidden items-center gap-1 lg:flex" aria-label="Adapter modes">
+    <div className="hidden items-center gap-1 xl:flex" aria-label="Adapter modes">
       {items.map(([k, v, real]) => (
         <Badge key={k} tone={real ? "in" : "neutral"} mono title={real ? `${k}: real service` : `${k}: simulated locally`}>{k} {v}</Badge>
       ))}
@@ -51,43 +53,67 @@ function ModeBadges({ modes }: { modes: Modes | null }) {
   );
 }
 
+const SQ = "grid h-9 w-9 shrink-0 place-items-center rounded-[4px] border-2 border-ink bg-ink text-white transition-transform hover:-translate-y-0.5 hover:bg-pink hover:text-ink";
+
 function ReplayBar({ src }: { src: Source }) {
   const r = src.replay!;
   const total = r.recording.events.length;
   const moments = useMemo(() => demoMoments(r.recording.events), [r.recording]);
   const m = r.recording.modes;
+  const pct = total ? (r.index / total) * 100 : 0;
   return (
-    <div className="px-4 py-3">
+    <div className="mb-5 rounded-[6px] border-2 border-ink bg-surface px-4 py-3 shadow-[5px_5px_0_#0e0e0e]">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1">
-          <Button tone="ghost" onClick={() => { r.setIndex(0); r.setPlaying(true); }} title="Restart"><Rewind size={14} /></Button>
-          <Button tone="ghost" onClick={() => r.setPlaying(!r.playing)} title={r.playing ? "Pause" : "Play"}>{r.playing ? <Pause size={14} /> : <Play size={14} />}</Button>
+        <div className="flex items-center gap-1.5">
+          <button className={SQ} onClick={() => { r.setIndex(0); r.setPlaying(true); }} title="Restart" aria-label="Restart"><Rewind size={15} /></button>
+          <button className={SQ} onClick={() => r.setPlaying(!r.playing)} title={r.playing ? "Pause" : "Play"} aria-label={r.playing ? "Pause" : "Play"}>{r.playing ? <Pause size={15} /> : <Play size={15} />}</button>
           {[1, 4, 10].map((s) => (
-            <button key={s} onClick={() => r.setSpeed(s)} aria-pressed={r.speed === s} className={cx("num h-7 rounded px-2 text-[12px]", r.speed === s ? "bg-raised text-ink" : "text-muted hover:text-ink")}>{s}×</button>
+            <button key={s} onClick={() => r.setSpeed(s)} aria-pressed={r.speed === s}
+              className={cx("num h-7 rounded-[3px] border-[1.5px] border-ink px-2 text-[12px] font-bold", r.speed === s ? "bg-ink text-yellow" : "bg-surface hover:bg-yellow")}>{s}×</button>
           ))}
         </div>
-        <div className="relative min-w-[240px] flex-1">
-          <input type="range" min={0} max={total} value={r.index} onChange={(e) => { r.setIndex(Number(e.target.value)); }} aria-label="Scrub replay" className="w-full accent-[#5a1530]" />
-          <div className="pointer-events-none absolute inset-x-0 top-[-2px] h-0">
-            {moments.map((mo) => (
-              <button key={mo.label} title={mo.label} onClick={() => r.setIndex(mo.index + 1)} style={{ left: `${((mo.index + 1) / total) * 100}%` }}
-                className="pointer-events-auto absolute -translate-x-1/2 rounded-full border-2 border-bg bg-out p-[3px]" aria-label={`Jump to ${mo.label}`} />
-            ))}
+        <div className="relative h-7 min-w-[200px] flex-1">
+          <div className="absolute inset-x-0 top-1/2 h-3.5 -translate-y-1/2 overflow-hidden rounded-[3px] border-2 border-ink bg-ink">
+            <div className="h-full bg-yellow" style={{ width: `${pct}%` }} />
           </div>
+          <input type="range" min={0} max={total} value={r.index} onChange={(e) => { r.setIndex(Number(e.target.value)); }} aria-label="Scrub replay"
+            className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:rounded-[2px] [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-ink [&::-moz-range-thumb]:bg-surface [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-[2px] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-ink [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:shadow-[2px_2px_0_#0e0e0e]" />
+          {moments.map((mo) => (
+            <button key={mo.label} title={mo.label} onClick={() => r.setIndex(mo.index + 1)} style={{ left: `${((mo.index + 1) / total) * 100}%` }}
+              className="absolute top-1/2 z-20 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-pink transition-transform hover:scale-125" aria-label={`Jump to ${mo.label}`} />
+          ))}
         </div>
-        <span className="num text-[12px] text-muted">{r.index}/{total}</span>
+        <span className="num text-[12px] font-semibold">{r.index}/{total}</span>
       </div>
-      <p className="mt-1 text-[11.5px] text-faint">
+      <p className="mt-2 text-[12px] text-ink/70">
         Replay of a recorded run · SERV {m.serv} · calls {m.carrier} · calendar {m.calendar} · {new Date(r.recording.exportedAt).toLocaleString()}
         {m.payments === "sim" ? " · simulated settlement (local facilitator) — Kitescan links appear for live testnet runs" : ` · every tx link is live on Kitescan${r.recording.network.token?.symbol === "fUSD" ? " · paid in fUSD, our EIP-3009 test token, settled by our own facilitator (testnet pieUSD isn't on the public faucet)" : ""}`}
         {r.recording.audit?.ok && <> · audit chain verified ({r.recording.audit.events} events)</>}
       </p>
-      <div className="mt-1 hidden flex-wrap gap-3 text-[11px] text-faint md:flex">
-        {moments.map((mo) => <button key={mo.label} onClick={() => r.setIndex(mo.index + 1)} className="hover:text-ink"><span className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-out" />{mo.label}</button>)}
+      <div className="mt-2 hidden flex-wrap gap-1.5 md:flex">
+        {moments.map((mo) => (
+          <button key={mo.label} onClick={() => r.setIndex(mo.index + 1)} className="flex items-center gap-1.5 rounded-[3px] border-[1.5px] border-ink bg-surface px-2 py-0.5 text-[11.5px] font-bold hover:bg-yellow">
+            <span className="h-2 w-2 rounded-full border border-ink bg-pink" />{mo.label}
+          </button>
+        ))}
       </div>
     </div>
   );
 }
+
+const DOODLE = "h-auto w-full text-pink";
+const TITLES: Record<string, [string, string, ReactNode]> = {
+  overview: ["Dashboard", "Rebook no-shows and get paid only when the booking is proven.", <Star className={DOODLE} color="#e0007a" />],
+  job: ["The job", "Every no-show, every call, every step until it's booked.", <Sparks className={DOODLE} color="#e0007a" />],
+  ledger: ["Ledger", "Money in from the clinic, money out to the agents Foreman hired.", <Crown className={DOODLE} color="#e0007a" />],
+  workers: ["Workers", "Phone agents on hire, scored by the proof oracle.", <Star className={DOODLE} color="#e0007a" />],
+  safety: ["Safety", "Every request the firewall said no to, with the clause that blocked it.", <Sparks className={DOODLE} color="#e0007a" />],
+  decisions: ["Decisions", "What SERV was asked, what it answered, and how long it took.", <Crown className={DOODLE} color="#e0007a" />],
+  contract: ["Contract", "The clinic's goal compiled into terms. Nothing runs outside them.", <Star className={DOODLE} color="#e0007a" />],
+  business: ["Business view", "What the clinic sees: give a job, pay only for proven rebookings.", <Sparks className={DOODLE} color="#e0007a" />],
+};
+
+const MCP_CMD = "claude mcp add foreman -- bun services/mcp/src/stdio.ts";
 
 function Shell() {
   const src = useSource();
@@ -128,9 +154,13 @@ function Shell() {
     }
   }, [src.events, toast]);
 
+  // Lock page scroll behind the mobile menu.
+  useEffect(() => { document.body.style.overflow = navOpen ? "hidden" : ""; }, [navOpen]);
+
   const business = state.contract?.business ?? "Smile Dental";
   const Page = PAGES.find(([k]) => k === page)![3];
   const c = state.contract;
+  const [title, sub, doodle] = TITLES[page]!;
 
   const [q, setQ] = useState("");
   const search = (e: React.FormEvent) => {
@@ -140,96 +170,146 @@ function Shell() {
     const hit = PAGES.find(([k, l]) => k.includes(t) || l.toLowerCase().includes(t));
     go(hit ? hit[0] : state.customers.some((x) => x.name.toLowerCase().includes(t)) ? "job" : "overview");
   };
-  const NavLink = ({ k, label, Icon }: { k: string; label: string; Icon: typeof Ban }) => {
-    const count = k === "safety" ? state.refusals.length : k === "decisions" ? state.decisions.length : 0;
+  const searchBox = (cls: string) => (
+    <form onSubmit={search} className={cx("items-center gap-2 rounded-[4px] border-2 border-ink bg-yellow px-3 py-1.5 focus-within:shadow-[3px_3px_0_#0e0e0e]", cls)}>
+      <Search size={15} className="shrink-0" />
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a page or customer" aria-label="Search" className="w-full bg-transparent text-[14px] font-semibold outline-none placeholder:text-ink/55" />
+    </form>
+  );
+  const count = (k: string) => (k === "safety" ? state.refusals.length : k === "decisions" ? state.decisions.length : 0);
+  const copyMcp = () => { void navigator.clipboard?.writeText(MCP_CMD); toast("in", "MCP command copied"); };
+
+  const navLink = (k: string, label: string, Icon: typeof Ban) => {
     const on = page === k;
+    const n = count(k);
     return (
-      <a href={`#${k}`} onClick={() => setNavOpen(false)} aria-current={on ? "page" : undefined}
-        className={cx("relative mb-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] transition-colors", on ? "bg-accent/[.08] font-semibold text-ink" : "text-muted hover:bg-ink/[.04] hover:text-ink")}>
-        {on && <span className="absolute -left-4 top-1.5 bottom-1.5 w-1 rounded-r-full bg-accent" />}
-        <Icon size={17} className={on ? "text-accent" : ""} aria-hidden />
-        {label}
-        {count > 0 && <span className={cx("num ml-auto rounded-md px-1.5 text-[10.5px]", k === "safety" ? "bg-refuse/10 text-refuse" : "bg-accent text-white")}>{count}</span>}
+      <a key={k} href={`#${k}`} aria-current={on ? "page" : undefined}
+        className={cx("relative mb-1 flex items-center gap-3 px-3 py-2 text-[15px] font-extrabold uppercase tracking-[0.03em] transition-colors", on ? "text-ink" : "text-ink/70 hover:text-ink")}>
+        {on && <motion.span layoutId="nav-on" className="absolute inset-0 -rotate-1 rounded-[4px] border-2 border-ink bg-pink shadow-[3px_3px_0_#0e0e0e]" transition={{ type: "spring", stiffness: 500, damping: 36 }} />}
+        <Icon size={17} className="relative" aria-hidden />
+        <span className="relative">{label}</span>
+        {n > 0 && <span className={cx("num relative ml-auto rounded-[3px] border-[1.5px] border-ink px-1.5 text-[10.5px] font-bold", on ? "bg-surface text-ink" : k === "safety" ? "bg-pink text-ink" : "bg-ink text-white")}>{n}</span>}
       </a>
     );
   };
 
   return (
     <AppCtx.Provider value={{ state, src, now, live, open: setDetail, act, go }}>
+      <HalftoneDefs />
       <div className="grain flex h-full gap-4 p-3 md:p-4">
         {/* sidebar */}
-        <nav className={cx("w-[236px] shrink-0 flex-col rounded-[26px] bg-surface p-4 shadow-[0_10px_30px_-24px_rgba(90,21,48,.45)]", navOpen ? "fixed inset-y-3 left-3 z-40 flex" : "hidden md:flex")}>
-          <a href="/" className="mb-7 px-1 pt-1" aria-label="Foreman home"><Wordmark size={19} /></a>
-          <p className="mb-2 px-3 font-mono text-[10.5px] uppercase tracking-[0.08em] text-faint">Menu</p>
-          {PAGES.slice(0, 6).map(([k, label, Icon]) => <NavLink key={k} k={k} label={label} Icon={Icon} />)}
-          <p className="mb-2 mt-5 px-3 font-mono text-[10.5px] uppercase tracking-[0.08em] text-faint">Business</p>
-          {PAGES.slice(6).map(([k, label, Icon]) => <NavLink key={k} k={k} label={label} Icon={Icon} />)}
-          <div className="relative mt-auto overflow-hidden rounded-[20px] bg-[#1c0811] p-4 text-[#f4eee2]">
-            <div className="orb" style={{ width: 170, height: 170, right: -60, top: -70, ["--c" as any]: "#c8481a", opacity: 0.75 }} />
-            <div className="orb" style={{ width: 120, height: 120, left: -40, bottom: -50, ["--c" as any]: "#d49a28", opacity: 0.5 }} />
-            <p className="relative text-[15px] font-semibold leading-snug">Run Foreman<br />from Claude</p>
-            <p className="relative mt-1 text-[11.5px] text-white/60">Ten MCP tools. Approving spend stays with you.</p>
-            <button onClick={() => { void navigator.clipboard?.writeText("claude mcp add foreman -- bun services/mcp/src/stdio.ts"); toast("in", "MCP command copied"); }}
-              className="relative mt-3 w-full rounded-full bg-[#f4eee2] py-2 text-[12.5px] font-semibold text-ink hover:bg-white">Copy MCP command</button>
+        <nav className="hidden w-[240px] shrink-0 flex-col overflow-y-auto rounded-[6px] border-2 border-ink bg-surface p-4 shadow-[5px_5px_0_#0e0e0e] md:flex">
+          <a href="/" className="mb-6 px-1 pt-1" aria-label="Foreman home"><Wordmark size={22} /></a>
+          <p className="marker mb-1.5 px-3 text-[14px] text-accent">Menu</p>
+          {PAGES.slice(0, 6).map(([k, label, Icon]) => navLink(k, label, Icon))}
+          <p className="marker mb-1.5 mt-4 px-3 text-[14px] text-accent">Business</p>
+          {PAGES.slice(6).map(([k, label, Icon]) => navLink(k, label, Icon))}
+          <div className="relative mt-auto overflow-hidden rounded-[6px] border-2 border-ink bg-ink p-4 pt-5 text-white">
+            <HardHat className="absolute -right-3 -top-2 w-[78px] rotate-12" />
+            <StarFilled className="absolute bottom-14 right-3 w-5 rotate-12" color="#ff2ea8" />
+            <p className="display relative pr-14 text-[26px]">Run Foreman <span className="text-yellow">from Claude</span></p>
+            <p className="relative mt-2 text-[12.5px] text-white/70">Ten MCP tools. Approving spend stays with you.</p>
+            <button onClick={copyMcp} style={{ "--brut-gap": "#fffdf4" } as React.CSSProperties} className="brut brut-pink brut-sm relative mt-4 w-[calc(100%-6px)] text-ink!">Copy MCP command</button>
           </div>
         </nav>
 
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           {/* top bar */}
-          <header className="flex shrink-0 items-center gap-3 rounded-[22px] bg-surface px-3 py-2.5 shadow-[0_10px_30px_-24px_rgba(90,21,48,.45)] md:px-4">
-            <button className="text-muted md:hidden" onClick={() => setNavOpen(!navOpen)} aria-label="Menu"><Menu size={18} /></button>
-            <form onSubmit={search} className="hidden min-w-[220px] max-w-[320px] flex-1 items-center gap-2 rounded-full bg-bg px-4 py-2 sm:flex">
-              <Search size={15} className="text-faint" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a page or customer" aria-label="Search" className="w-full bg-transparent text-[13.5px] outline-none placeholder:text-faint" />
-            </form>
+          <header className="flex shrink-0 items-center gap-2 rounded-[6px] border-2 border-ink bg-surface px-2.5 py-2 shadow-[5px_5px_0_#0e0e0e] sm:gap-3 md:px-3">
+            <button className={cx(SQ, "md:hidden")} onClick={() => setNavOpen(true)} aria-label="Open menu" aria-expanded={navOpen}><Menu size={18} /></button>
+            <a href="/" className="md:hidden" aria-label="Foreman home"><Wordmark size={19} /></a>
+            {searchBox("hidden min-w-[200px] max-w-[320px] flex-1 md:flex")}
             {c && (
-              <span className="hidden items-center gap-2 text-[12px] text-muted 2xl:flex">
-                <span className="font-mono">{c.id}</span>
+              <span className="hidden items-center gap-2 text-[12px] 2xl:flex">
+                <span className="font-mono font-semibold">{c.id}</span>
                 <Badge tone={c.status === "running" ? "accent" : c.status === "draft" ? "out" : "neutral"}>{c.status}</Badge>
               </span>
             )}
             <div className="ml-auto flex items-center gap-2">
               <ModeBadges modes={state.modes ?? src.modes} />
-              {src.mode === "loading" ? <Skeleton className="h-5 w-14" /> : (
-                <Badge tone={live ? "in" : "out"} mono>{live ? <><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-in" />LIVE</> : "REPLAY"}</Badge>
+              {src.mode === "loading" ? <Skeleton className="h-6 w-16" /> : live ? (
+                <span className="display flex items-center gap-1.5 border-2 border-ink bg-in px-2 py-0.5 text-[14px] text-white"><span className="h-2 w-2 animate-pulse rounded-full bg-yellow" />Live</span>
+              ) : (
+                <span className="display rotate-2 border-2 border-ink bg-pink px-2 py-0.5 text-[14px]">Replay</span>
               )}
               {state.kill.on ? (
-                <Button tone="default" disabled={!live} onClick={() => { setConfirmText(""); setKillOpen(true); }} className="border-refuse text-refuse"><Ban size={14} />Killed · release</Button>
+                <Button tone="default" disabled={!live} onClick={() => { setConfirmText(""); setKillOpen(true); }} className="text-refuse!"><Ban size={14} />Killed · release</Button>
               ) : (
                 <Button tone="danger" disabled={!live} title={live ? "Stop all spending now" : "Disabled in replay"} onClick={() => act("Kill switch engaged — every action is refused", () => api("POST", "/api/kill"))}>
                   <Ban size={14} />Kill
                 </Button>
               )}
-              <div className="ml-1 hidden items-center gap-2.5 border-l border-line pl-3 sm:flex">
-                <span className="grid h-9 w-9 place-items-center rounded-full text-[13px] font-bold text-white" style={{ background: "linear-gradient(135deg,#c8481a,#5a1530)" }}>{business[0]}</span>
+              <div className="ml-1 hidden items-center gap-2.5 border-l-2 border-dashed border-ink/25 pl-3 sm:flex">
+                <span className="display grid h-9 w-9 -rotate-3 place-items-center rounded-full border-2 border-ink bg-pink pt-0.5 text-[17px] shadow-[2px_2px_0_#0e0e0e]">{business[0]}</span>
                 <div className="hidden whitespace-nowrap leading-tight 2xl:block">
-                  <div className="text-[13.5px] font-semibold">{business}</div>
+                  <div className="text-[14px] font-extrabold">{business}</div>
                   <div className="font-mono text-[11px] text-muted">{(() => { const a = (state.identities[business] ?? src.identities?.[business])?.address; return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "clinic wallet"; })()}</div>
                 </div>
               </div>
             </div>
           </header>
-          <main className="min-h-0 flex-1 overflow-y-auto rounded-[26px] bg-[#f1eadc] p-3 md:p-5">
-            {src.replay && <div className="mb-4 overflow-hidden rounded-[22px] bg-surface shadow-[0_10px_30px_-24px_rgba(90,21,48,.45)]"><ReplayBar src={src} /></div>}
-            {src.error && <div className="mb-4 rounded-xl bg-out/10 px-4 py-2 text-[12px] text-out">{src.error}</div>}
+          <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-0.5 pb-6 pr-2">
+            {src.replay && <ReplayBar src={src} />}
+            {src.error && <div className="mb-4 rounded-[4px] border-2 border-ink bg-[#ffe8c9] px-4 py-2 text-[13px] font-semibold text-out">{src.error}</div>}
             {src.mode === "loading" ? (
-              <div className="space-y-4"><div className="grid grid-cols-4 gap-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[130px] !rounded-[22px]" />)}</div><Skeleton className="h-[420px] !rounded-[22px]" /></div>
+              <div className="space-y-4"><div className="grid grid-cols-2 gap-4 xl:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[130px]" />)}</div><Skeleton className="h-[420px]" /></div>
             ) : (
-              <>
-                {page !== "overview" && <h1 className="display mb-4 text-[34px] md:text-[40px]">{PAGES.find(([k]) => k === page)![1]}</h1>}
-                <Page />
-              </>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div key={page} initial={{ opacity: 0, y: 14, rotate: -0.6 }} animate={{ opacity: 1, y: 0, rotate: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}>
+                  <PageTitle title={title} sub={sub} doodle={doodle}
+                    aside={page === "overview" && (
+                      <div className="flex gap-3">
+                        <button onClick={() => go("business")} className="brut brut-sm"><Play size={15} />New run</button>
+                        <button onClick={() => go("ledger")} className="brut brut-light brut-sm"><Download size={15} />Ledger</button>
+                      </div>
+                    )} />
+                  <Page />
+                </motion.div>
+              </AnimatePresence>
             )}
           </main>
         </div>
       </div>
+
+      {/* mobile menu */}
+      <AnimatePresence>
+        {navOpen && (
+          <motion.div className="grain fixed inset-0 z-50 flex flex-col overflow-y-auto bg-yellow px-4 pb-8 pt-3 md:hidden" role="dialog" aria-modal="true" aria-label="Menu"
+            initial={{ y: "-100%" }} animate={{ y: 0 }} exit={{ y: "-100%" }} transition={{ type: "spring", stiffness: 320, damping: 34 }}>
+            <div className="flex items-center justify-between py-1.5">
+              <Wordmark size={22} />
+              <button onClick={() => setNavOpen(false)} aria-label="Close menu" className="grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-ink text-white"><X size={20} /></button>
+            </div>
+            {searchBox("mt-4 flex")}
+            <motion.ul className="mt-5 border-t-2 border-ink" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.04, delayChildren: 0.08 } } }}>
+              {PAGES.map(([k, label]) => (
+                <motion.li key={k} variants={{ hidden: { opacity: 0, x: -24 }, show: { opacity: 1, x: 0 } }} className="border-b-2 border-ink">
+                  <a href={`#${k}`} onClick={() => setNavOpen(false)} aria-current={page === k ? "page" : undefined} className="flex items-center justify-between gap-3 py-2.5">
+                    <span className={cx("display text-[44px] leading-none", page === k && "hl")}>{label}</span>
+                    <span className="flex items-center gap-2">
+                      {count(k) > 0 && <span className="num rounded-[3px] border-[1.5px] border-ink bg-ink px-1.5 text-[12px] font-bold text-white">{count(k)}</span>}
+                      <ArrowRight size={30} strokeWidth={3} />
+                    </span>
+                  </a>
+                </motion.li>
+              ))}
+            </motion.ul>
+            <div className="relative mt-6 rounded-[6px] border-2 border-ink bg-ink p-4 text-white">
+              <HardHat className="absolute -right-2 -top-4 w-[72px] rotate-12" />
+              <p className="display pr-16 text-[26px]">Run Foreman <span className="text-yellow">from Claude</span></p>
+              <button onClick={copyMcp} style={{ "--brut-gap": "#fffdf4" } as React.CSSProperties} className="brut brut-pink brut-sm mt-3 text-ink!">Copy MCP command</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Sheet open={!!detail} onClose={() => setDetail(null)} title={detail ? <span className="flex items-center gap-2">{describe(detail)?.text ?? human(detail.type)}</span> : ""}>
         {detail && <EventDetail e={detail} state={state} />}
       </Sheet>
       <Dialog open={killOpen} onClose={() => setKillOpen(false)} title="Release the kill switch">
-        <p className="mb-3 text-[13px] text-muted">Spending resumes under the contract's limits. Type <span className="font-mono text-ink">{business.toUpperCase()}</span> to confirm.</p>
-        <input autoFocus value={confirmText} onChange={(e) => setConfirmText(e.target.value)} className="mb-4 w-full rounded-md border border-line bg-bg px-3 py-2 font-mono text-[13px] outline-none focus:border-accent" aria-label="Business name" />
-        <div className="flex justify-end gap-2">
+        <p className="mb-3 text-[14px] text-ink/80">Spending resumes under the contract's limits. Type <span className="font-mono font-bold text-ink">{business.toUpperCase()}</span> to confirm.</p>
+        <input autoFocus value={confirmText} onChange={(e) => setConfirmText(e.target.value)} className="mb-5 w-full rounded-[4px] border-2 border-ink bg-yellow px-3 py-2 font-mono text-[13px] font-semibold outline-none focus:shadow-[3px_3px_0_#ff2ea8]" aria-label="Business name" />
+        <div className="flex justify-end gap-3">
           <Button tone="ghost" onClick={() => setKillOpen(false)}>Keep stopped</Button>
           <Button tone="primary" disabled={confirmText.trim().toUpperCase() !== business.toUpperCase()} onClick={() => act("Kill switch released", async () => { await api("POST", "/api/unkill", { confirm: confirmText }); setKillOpen(false); })}>Release</Button>
         </div>

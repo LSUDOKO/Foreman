@@ -1,29 +1,20 @@
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import type { MotionValue } from "framer-motion";
-import type { CSSProperties, ReactNode, PointerEvent } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { Bolt } from "./art";
 import { cx } from "./ui";
 
-/** The Foreman mark: a column (the agent) carrying two arms (the work); the lower arm turns up into a tick (the proof). */
+/** The Foreman mark: a black lightning bolt. */
 export function Mark({ size = 32, className }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" className={className} aria-hidden>
-      <defs>
-        <linearGradient id="fm-col" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6e1e3e" /><stop offset="1" stopColor="#3a0c20" /></linearGradient>
-        <linearGradient id="fm-a1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#e2672f" /><stop offset="1" stopColor="#b33a12" /></linearGradient>
-        <linearGradient id="fm-a2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#c47f12" /><stop offset="1" stopColor="#e8b444" /></linearGradient>
-      </defs>
-      <path d="M10 8h14l-4 48H6z" fill="url(#fm-col)" />
-      <path d="M24 8h30c3 0 4 3 2 5l-6 7H22z" fill="url(#fm-a1)" />
-      <path d="M21 31h16l6 6 12-14c2-2 5 0 4 3L45 46c-1 2-4 2-5 0l-5-6H20z" fill="url(#fm-a2)" />
-    </svg>
-  );
+  return <Bolt color="#0e0e0e" className={className} style={{ width: size, height: size }} />;
 }
 
-export function Wordmark({ className, silver, size = 22 }: { className?: string; silver?: boolean; size?: number }) {
+/** "⚡ Foreman": black bolt + heavy tight sans. `silver` is kept for old call sites and ignored. */
+export function Wordmark({ className, size = 22 }: { className?: string; silver?: boolean; size?: number }) {
   return (
-    <span className={cx("inline-flex items-center gap-2.5", className)}>
-      <Mark size={size * 1.25} />
-      <span className={cx("display", silver && "silver")} style={{ fontSize: size, lineHeight: 1 }}>Foreman</span>
+    <span className={cx("inline-flex items-center gap-1.5 text-ink", className)}>
+      <Mark size={size * 1.15} className="-rotate-6" />
+      <span className="font-sans font-extrabold tracking-[-0.03em]" style={{ fontSize: size, lineHeight: 1 }}>Foreman</span>
     </span>
   );
 }
@@ -43,25 +34,12 @@ export const Cross = ({ className }: { className?: string }) => (
   <svg width="11" height="11" viewBox="0 0 11 11" className={cx("absolute text-ink/50", className)} aria-hidden><path d="M5.5 0v11M0 5.5h11" stroke="currentColor" /></svg>
 );
 
-/** Liquid glass button: the specular highlight follows the pointer and the body leans slightly towards it. */
+/** Brand button: a `.brut` sticker link or button. `ink` = black, otherwise paper. */
 export function Glass({ children, href, onClick, ink, className, target }: { children: ReactNode; href?: string; onClick?: () => void; ink?: boolean; className?: string; target?: string }) {
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const x = useSpring(useTransform(mx, (v) => v * 6), { stiffness: 300, damping: 20 });
-  const y = useSpring(useTransform(my, (v) => v * 4), { stiffness: 300, damping: 20 });
-  const move = (e: PointerEvent<HTMLElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width;
-    const py = (e.clientY - r.top) / r.height;
-    e.currentTarget.style.setProperty("--mx", `${px * 100}%`);
-    e.currentTarget.style.setProperty("--my", `${py * 100}%`);
-    mx.set(px - 0.5); my.set(py - 0.5);
-  };
-  const leave = () => { mx.set(0); my.set(0); };
-  const cls = cx("glass", ink && "glass-ink", className);
+  const cls = cx("brut", !ink && "brut-light", className);
   return href ? (
-    <motion.a href={href} target={target} rel={target ? "noreferrer" : undefined} className={cls} style={{ x, y }} onPointerMove={move} onPointerLeave={leave}>{children}</motion.a>
+    <a href={href} target={target} rel={target ? "noreferrer" : undefined} className={cls}>{children}</a>
   ) : (
-    <motion.button type="button" onClick={onClick} className={cls} style={{ x, y }} onPointerMove={move} onPointerLeave={leave}>{children}</motion.button>
+    <button type="button" onClick={onClick} className={cls}>{children}</button>
   );
 }
