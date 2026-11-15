@@ -73,6 +73,6 @@ export function twiml(...parts: string[]) {
 }
 export const say = (text: string, voice = process.env.TWILIO_VOICE ?? "Polly.Aditi") => `<Say voice="${voice}">${xml(text)}</Say>`;
 export function gather(action: string, inner: string, lang = "en-IN") {
-  return `<Gather input="speech dtmf" action="${xml(action)}" method="POST" speechTimeout="auto" numDigits="1" timeout="6" language="${lang}">${inner}</Gather>`;
+  return `<Gather input="speech dtmf" action="${xml(action)}" method="POST" speechTimeout="auto" numDigits="1" timeout="10" language="${lang}">${inner}</Gather>`;
 }
 export const hangup = () => "<Hangup/>";
