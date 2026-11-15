@@ -1,38 +1,36 @@
-<!doctype html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!doctype html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Semi+Condensed:wght@500;700;800&family=Permanent+Marker&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-:root{--paper:#ebe3d2;--card:#f4eee2;--ink:#2a0e19;--maroon:#5a1530;--ember:#c8481a;--mustard:#d49a28;--plum:#7a2742}
-*{box-sizing:border-box;margin:0}body{background:var(--paper);color:var(--ink);font-family:Archivo,sans-serif;width:1600px}
-.d{font-weight:800;font-stretch:125%;letter-spacing:-.035em;line-height:.92}.m{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.04em;text-transform:uppercase;opacity:.75}
-.orb{position:absolute;border-radius:50%;}.orb:before,.orb:after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--c)}.orb:before{filter:blur(28px);transform:scale(.82)}
-.orb:after{-webkit-mask:radial-gradient(circle,#000 0 1.15px,transparent 1.6px) 0 0/5px 5px,radial-gradient(closest-side,#000 55%,transparent);-webkit-mask-composite:source-in}
-section{position:relative;overflow:hidden;padding:56px 64px;border-bottom:1px dashed rgba(42,14,25,.3)}
-.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}.sw{height:150px;border-radius:18px;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;border:1px solid rgba(42,14,25,.15)}
-.glass{display:inline-flex;align-items:center;border-radius:999px;padding:14px 26px;font-weight:600;font-stretch:112%;font-size:17px;color:var(--ink);background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.18));border:1px solid rgba(255,255,255,.7);backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 #fff,inset 0 -10px 18px -10px rgba(90,21,48,.22),0 10px 28px -12px rgba(90,21,48,.45)}
-.ink{color:#f6efe2;background:linear-gradient(180deg,rgba(110,30,62,.92),rgba(58,14,32,.88));border-color:rgba(255,210,190,.35)}
-.silver{background:linear-gradient(180deg,#fff 0%,#d9d4dc 45%,#8d8492 60%,#e8e4ea 100%);-webkit-background-clip:text;color:transparent}
-.chip{display:inline-block;border:1px solid rgba(42,14,25,.55);border-radius:999px;padding:6px 14px;font-family:'JetBrains Mono';font-size:13px}
+*{box-sizing:border-box;margin:0}body{background:#f7ef1c;color:#0e0e0e;font-family:'Barlow Semi Condensed',sans-serif;font-weight:700;width:1600px}
+.d{font-family:Anton;text-transform:uppercase;line-height:.88}.mk{font-family:'Permanent Marker'}
+section{position:relative;padding:60px 70px;border-bottom:4px solid #0e0e0e}
+.hl{background:url(../../apps/console/public/assets/textures/brush-pink.svg) center/100% 100% no-repeat;padding:0 14px}
+.sw{height:170px;border:3px solid #0e0e0e;box-shadow:6px 6px 0 #0e0e0e;padding:16px;display:flex;flex-direction:column;justify-content:flex-end;font-size:20px}
+.m{font-family:'JetBrains Mono';font-size:15px}
+.brut{display:inline-flex;align-items:center;gap:10px;padding:14px 26px;background:#0e0e0e;color:#fff;font-size:20px;box-shadow:6px 6px 0 0 #f7ef1c,6px 6px 0 2px #0e0e0e}
+.tape{position:absolute;width:100px;height:28px;background:rgba(28,28,28,.82)}
 </style></head><body>
-<section style="height:520px;display:flex;align-items:center;gap:40px">
- <div class="orb" style="--c:var(--ember);width:520px;height:520px;right:120px;top:-200px"></div>
- <div class="orb" style="--c:var(--maroon);width:400px;height:400px;right:-60px;top:-60px;mix-blend-mode:multiply"></div>
- <div class="orb" style="--c:var(--mustard);width:420px;height:420px;right:300px;bottom:-300px;mix-blend-mode:multiply"></div>
- <img src="foreman-mark.svg" width="150" style="position:relative">
- <div style="position:relative"><div class="m" style="margin-bottom:18px">Foreman brand kit · v1</div><div class="d" style="font-size:150px">Foreman</div>
- <div style="margin-top:22px;display:flex;gap:10px"><span class="chip">Rebooks no-shows</span><span class="chip">Paid per outcome</span></div></div>
+<section style="display:flex;align-items:center;gap:40px;height:440px">
+ <svg viewBox="0 0 100 100" width="170"><path d="M60 3 L18 56 L45 56 L33 97 L84 38 L55 38 L68 3Z" fill="#0e0e0e"/></svg>
+ <div><div class="mk" style="font-size:30px;transform:rotate(-2deg)">brand kit v2</div><div class="d" style="font-size:220px">Foreman</div></div>
+ <div class="d hl" style="position:absolute;right:80px;bottom:60px;font-size:60px;transform:rotate(-3deg)">Paid on proof</div>
 </section>
-<section><div class="m" style="margin-bottom:22px">Colour</div><div class="grid">
- <div class="sw" style="background:#ebe3d2"><b>Paper</b><span class="m">#EBE3D2</span></div>
- <div class="sw" style="background:#f4eee2"><b>Card</b><span class="m">#F4EEE2</span></div>
- <div class="sw" style="background:#2a0e19;color:#f4eee2"><b>Ink</b><span class="m">#2A0E19</span></div>
- <div class="sw" style="background:#5a1530;color:#f4eee2"><b>Maroon</b><span class="m">#5A1530</span></div>
- <div class="sw" style="background:#c8481a;color:#f4eee2"><b>Ember</b><span class="m">#C8481A</span></div>
- <div class="sw" style="background:#d49a28"><b>Mustard</b><span class="m">#D49A28</span></div></div></section>
-<section style="display:grid;grid-template-columns:1.3fr 1fr;gap:60px"><div><div class="m" style="margin-bottom:22px">Type</div>
- <div class="d" style="font-size:96px">Archivo Expanded 800</div><p style="font-size:22px;line-height:1.5;margin-top:20px;max-width:34ch">Archivo at normal width for reading. Headlines run at 125% width, tight tracking. JetBrains Mono for chain data and labels.</p>
- <p class="m" style="margin-top:16px;text-transform:none;font-size:15px">0xbf4f2bac…dfb11 · chain 2368 · x402 exact</p></div>
- <div><div class="m" style="margin-bottom:22px">Buttons and chips</div><div style="display:flex;flex-direction:column;gap:18px;align-items:flex-start;position:relative">
- <div class="orb" style="--c:var(--ember);width:260px;height:260px;left:120px;top:-20px;opacity:.7"></div>
- <span class="glass ink" style="position:relative">Watch a real run</span><span class="glass" style="position:relative">First payment on Kitescan ↗</span><span class="chip" style="position:relative">foreman_ledger</span></div></div></section>
-<section style="background:#0d0609;color:#f4eee2;display:flex;align-items:center;gap:36px;height:300px">
- <img src="foreman-mark.svg" width="120"><div class="d silver" style="font-size:150px">Foreman</div></section>
+<section><div class="mk" style="font-size:28px;margin-bottom:24px">colour</div>
+ <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:22px">
+  <div class="sw" style="background:#f7ef1c">Electric yellow<span class="m">#F7EF1C</span></div>
+  <div class="sw" style="background:#ff2ea8">Hot pink<span class="m">#FF2EA8</span></div>
+  <div class="sw" style="background:#0e0e0e;color:#f7ef1c">Photocopy black<span class="m">#0E0E0E</span></div>
+  <div class="sw" style="background:#fffdf4">Paper<span class="m">#FFFDF4</span></div>
+  <div class="sw" style="background:#e0007a;color:#fff">Pink for text<span class="m">#E0007A</span></div></div></section>
+<section style="display:grid;grid-template-columns:1.2fr 1fr;gap:60px">
+ <div><div class="mk" style="font-size:28px;margin-bottom:18px">type</div>
+  <div class="d" style="font-size:150px">Anton display</div>
+  <p style="font-size:28px;margin-top:20px;max-width:30ch">Barlow Semi Condensed for reading, bold and tight. <span class="mk">Permanent Marker for scribbles.</span> JetBrains Mono for chain data.</p>
+  <p class="m" style="margin-top:14px">0xbf4f2bac…dfb11 · chain 2368 · x402 exact</p></div>
+ <div style="position:relative"><div class="mk" style="font-size:28px;margin-bottom:24px">buttons & paper</div>
+  <span class="brut">Watch a real run →</span><br><br>
+  <span class="brut" style="background:#ff2ea8">Copy MCP command</span><br><br>
+  <div style="position:relative;background:#fffdf4;border:3px solid #0e0e0e;box-shadow:7px 7px 0 #0e0e0e;padding:26px;transform:rotate(-2deg);width:420px;margin-top:20px">
+   <span class="tape" style="top:-14px;left:40px;transform:rotate(-5deg)"></span>
+   <div class="d" style="font-size:56px">Calls</div><div style="font-size:20px">Phones every no-show. Says it's an AI.</div></div></div>
+</section>
 </body></html>

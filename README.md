@@ -32,7 +32,7 @@ Every frame below is the real console playing a recorded run on Kite testnet. Al
 transactions you can open on Kitescan. (The recording used the sandbox phone and calendar; the same code drives
 Twilio and Cal.com when keys are set.)
 
-**1 · The story in one scroll.** The landing page tells the run from goal to payment, using the recording's own numbers.
+**1 · The story in one scroll.** The landing page: a GSAP hero, drawn collage stickers, and the recording's own numbers.
 
 ![Landing page](docs/media/01-landing.gif)
 
@@ -64,9 +64,9 @@ Twilio and Cal.com when keys are set.)
 
 ![SERV decisions](docs/media/08-serv-decisions.gif)
 
-**9 · Real money, on chain.** The landing page's proof section links every settled payment.
+**9 · One real run.** Asha rebooked, QuickDial caught lying, Rahul's scam refused, then every settled payment with its Kitescan link.
 
-![Proof](docs/media/09-landing-proof.gif)
+![The run](docs/media/09-landing-run.gif)
 
 > **Honest notes.** Payments settle **on Kite testnet** for real, but not in pieUSD: testnet pieUSD isn't on the public
 > faucet (it only gives KITE and a USDT without EIP-3009, which x402 "exact" can't use). So we deployed **fUSD**
@@ -172,8 +172,12 @@ webhooks, so they run on your machine or a server with `bun run dev:all`, not on
 
 ## Brand
 
-Printed paper, overprinted halftone ink, a dashed survey grid and an expanded grotesk. Mark, colours, type, buttons and
-the banner live in [`docs/brand`](docs/brand/).
+Loud collage: electric yellow, hot pink and photocopy black, torn paper, tape, marker doodles and halftone stickers
+(a hard hat for the foreman, a phone handset, a calendar page, an x402 receipt, a Kite coin, proof stamps), all drawn
+in code in [`apps/console/src/art.tsx`](apps/console/src/art.tsx). Anton for display, Barlow Semi Condensed for text,
+Permanent Marker for scribbles. Motion: GSAP timelines and ScrollTrigger on the landing page, Framer Motion for reveals,
+page transitions and the menus; everything respects reduced motion. Mark, colours, type and the banner live in
+[`docs/brand`](docs/brand/).
 
 ![Brand kit](docs/brand/brand-kit.png)
 
